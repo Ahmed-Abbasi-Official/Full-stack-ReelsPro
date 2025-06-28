@@ -12,7 +12,8 @@ export default withAuth(
 
                 if (pathname.startsWith('/api/auth') ||
                     pathname === '/login' ||
-                    pathname === '/regiter'
+                    pathname === '/register' ||
+                    pathname.startsWith("/.well-known")
                 ) { return true }
 
                 if(pathname === '/' || pathname === '/api/videos') return true;

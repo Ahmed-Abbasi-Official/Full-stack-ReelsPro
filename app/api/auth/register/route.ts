@@ -27,6 +27,7 @@ export async function POST(request:NextRequest)
         {
             return NextResponse.json(
                 new ApiError(404,"User Already exist"),{status:400}
+
             )
         }
 
