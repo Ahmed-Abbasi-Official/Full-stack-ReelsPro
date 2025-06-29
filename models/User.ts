@@ -13,7 +13,8 @@ const userSchema = new Schema<IUser>({
     email:{
         type:String,
         required:true,
-        unique:true
+        unique:true,
+        index:true
     },
     password:{
         type:String,
@@ -29,6 +30,10 @@ userSchema.pre('save',async function (next) {
     next();
 });
 
+
+
 const User = models?.User || model<IUser>('User',userSchema);
+
+
 
 export default User ;
