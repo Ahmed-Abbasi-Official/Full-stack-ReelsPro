@@ -16,12 +16,15 @@ const LoginPage = () => {
       password,
       redirect: false
     })
+    console.log(result)
     if (result?.error) {
       alert(result.error);
+      return;
     }
-    else {
-      router.push('/');
-    }
+   if(result?.url)
+   {
+    router.push('/')
+   }
   }
   return (
     <div>

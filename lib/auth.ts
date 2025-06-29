@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 export const authOptions:AuthOptions = {
     providers:[
         CredentialsProvider({
+            id:"Credentials",
             name:"Credentials",
             credentials:{
                 email:{label:"email",type:"text"},
@@ -22,6 +23,7 @@ export const authOptions:AuthOptions = {
                 try {
                     await DBConnect();
                     const user= await User.findOne({email:credentials.email});
+                    console.log(user)
 
                     if(!user)
                     {
