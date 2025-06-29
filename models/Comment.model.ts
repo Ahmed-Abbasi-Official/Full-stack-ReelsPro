@@ -24,7 +24,7 @@ const commentSchema = new Schema<IComment>({
     }
 });
 
-const Comment = mongoose.model("Comment", commentSchema);
+const Comment =mongoose.models?.Comment || mongoose.model<IComment>("Comment", commentSchema);
 
 export default Comment;
 

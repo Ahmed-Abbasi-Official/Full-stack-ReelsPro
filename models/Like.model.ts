@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { mongo, Schema } from "mongoose";
 
 export interface ILike {
     like: number;
@@ -23,6 +23,6 @@ const likeSchema=new Schema<ILike>({
         }
 })
 
-const Like = mongoose.model("Like", likeSchema);
+const Like = mongoose.models?.Like || mongoose.model("Like", likeSchema);
 
 export default Like;
