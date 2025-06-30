@@ -1,49 +1,98 @@
 import User from "@/models/User";
-import { NextRequest , NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { DBConnect } from "@/lib/db";
 import { ApiResponse } from "@/utils/ApiResponse";
 import { ApiError } from "@/utils/ApiError";
+import { usernameValidation } from "@/schemas/registerSchema";
+import { nextError, nextResponse } from "@/utils/Response";
+import { sendVerificationCode } from "@/lib/mailer/nodemailer";
 
-export async function POST(request:NextRequest)
-{
-  
+export async function POST(request: NextRequest) {
+
     try {
-        const {email,password} = await request.json();
+        const { username, email, password } = await request.json();
 
-        if(!email || !password)
-            {
-                const response = new ApiError(400,"Email and password are required");
-                
-                return NextResponse.json(
-                    response,{status:400}
-                )
-            };
-            
-            await DBConnect();
-            
-        const existingUser = await User.findOne({email});
+        if (!email || !password) {
+            const response = new ApiError(400, "Email and password are required");
 
-        if(existingUser)
-        {
             return NextResponse.json(
-                new ApiError(404,"User Already exist"),{status:400}
-
+                response, { status: 400 }
             )
+        };
+
+
+
+
+        // USERNAME Checking By ZOD
+
+        const checkingUsernameUniqueness = usernameValidation.safeParse({ username });
+
+
+
+        if (!checkingUsernameUniqueness.success) {
+            const error = checkingUsernameUniqueness.error.format().username?._errors[0]
+            return nextResponse(400, error as string, "")
         }
 
-        await User.create({
-            email,password
-        });
+        // CHECK USERNAME ALREADY EXIST OR NOT ;
+
+        await DBConnect();
+
+        const existingUsername = await User.findOne({ username });
+
+        if (existingUsername) {
+            return nextError(409, "username already exist")
+        }
+
+        // CHECKING FOR EMAIL AND CREATE CODE ;
+
+        const existingEmail = await User.findOne({ email });
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+        if (existingEmail) {
+            if (existingEmail.isVerified) {
+                return nextError(409, 'email already exist')
+            }else{
+                existingEmail.username=username;
+                existingEmail.password=password;
+                existingEmail.codeExpiry=new Date(Date.now() + 3600000);
+                 await existingEmail.save();
+            }
+
+
+
+
+        } else {
+            const codeExpiry = new Date();
+            codeExpiry.setHours(codeExpiry.getHours() + 1);
+
+            await User.create({
+                email,
+                username,
+                password,
+                code,
+                codeExpiry,
+                isVerified:false
+            })
+        }
+        console.log('yaha tk aya')
+        // NOW VERIFICATION SETUP ;
+
+       const sendMessage =  await sendVerificationCode(email,code);
+       
+       if(!sendMessage)
+       {
+        return nextError(400,"Error in Sending Message");
+       }
 
         return NextResponse.json(
-            new ApiResponse(200,"User Registered Successfully")
+            new ApiResponse(201, "User Registered Successfully Plaease veriy your email")
         );
-
     } catch (error) {
         return NextResponse.json(
             {
-                error:`Error in Register Route : ${error}`
-            },{status:500}
+                error: `Error in Register Route : ${error}`
+            }, { status: 500 }
         )
     }
 }

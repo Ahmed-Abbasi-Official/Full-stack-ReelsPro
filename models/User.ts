@@ -11,7 +11,10 @@ export interface IUser {
 
     _id?: mongoose.Types.ObjectId;
     createdAt?: Date;
-    updatedAt?: Date
+    updatedAt?: Date;
+    followers: [mongoose.Types.ObjectId];
+    following: [mongoose.Types.ObjectId];
+    profilePic?:string;
 };
 
 const userSchema = new Schema<IUser>({
@@ -43,6 +46,17 @@ const userSchema = new Schema<IUser>({
     codeExpiry: {
         type: Date,
         required: [true, "Verified Code Expiry is required"],
+    },
+    followers:[
+       { type:Schema.Types.ObjectId,
+        ref:"User"}
+    ],
+    following:[
+       { type:Schema.Types.ObjectId,
+        ref:"User"}
+    ],
+    profilePic:{
+        type:String
     }
 
 }, { timestamps: true });

@@ -11,7 +11,11 @@ const nextResponse =(statusCode:number,message:string,data:any=null)=>{
 }
 const nextError =(statusCode:number,message:string,data:any=null)=>{
     return NextResponse.json(
-        new ApiError(statusCode,message,data),{status:statusCode}
+        {
+            status:statusCode,
+            message:message,
+            data
+        },{status:statusCode}
     )
 }
 
