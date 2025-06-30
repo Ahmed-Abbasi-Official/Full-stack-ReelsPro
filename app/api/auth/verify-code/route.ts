@@ -9,9 +9,11 @@ export const POST = asyncHandler(async(req):Promise<NextResponse>=>{
 
     const {code,username} = await req.json();
 
-    if(!code){
+    if(!code || !username){
         return nextError(400,"Guve me a code");
     };
+
+    console.log(code)
 
     await DBConnect();
 
@@ -21,9 +23,12 @@ export const POST = asyncHandler(async(req):Promise<NextResponse>=>{
         return nextError(400,"No User FOund!");
     }
 
-  const isValid =   user.code === code;
+  const isValid =   user.code == code;
+  console.log(user.code)
 
-  const notExpiryCode = new Date(user.verifyCodeExpiry) > new Date() ;
+  console.log(isValid)
+
+  const notExpiryCode = new Date(user.codeExpiry) > new Date() ;
 
   if(!isValid){
     return nextError(400,"Invalid Code")

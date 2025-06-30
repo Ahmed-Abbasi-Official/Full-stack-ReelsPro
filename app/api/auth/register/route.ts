@@ -52,11 +52,12 @@ export async function POST(request: NextRequest) {
         if (existingEmail) {
             if (existingEmail.isVerified) {
                 return nextError(409, 'email already exist')
-            }else{
-                existingEmail.username=username;
-                existingEmail.password=password;
-                existingEmail.codeExpiry=new Date(Date.now() + 3600000);
-                 await existingEmail.save();
+            } else {
+                existingEmail.username = username;
+                existingEmail.password = password;
+                existingEmail.code = code;
+                existingEmail.codeExpiry = new Date(Date.now() + 60000); // 60 seconds
+                await existingEmail.save();
             }
 
 
@@ -64,26 +65,30 @@ export async function POST(request: NextRequest) {
 
         } else {
             const codeExpiry = new Date();
-            codeExpiry.setHours(codeExpiry.getHours() + 1);
+            codeExpiry.setSeconds(codeExpiry.getSeconds() + 60);
 
-            await User.create({
+
+            const newUser = new User({
                 email,
                 username,
                 password,
                 code,
                 codeExpiry,
-                isVerified:false
+                isVerified: false
             })
+
+            await newUser.save();
         }
+
+
         console.log('yaha tk aya')
         // NOW VERIFICATION SETUP ;
 
-       const sendMessage =  await sendVerificationCode(email,code);
-       
-       if(!sendMessage)
-       {
-        return nextError(400,"Error in Sending Message");
-       }
+        const sendMessage = await sendVerificationCode(email, code);
+
+        if (!sendMessage) {
+            return nextError(400, "Error in Sending Message");
+        }
 
         return NextResponse.json(
             new ApiResponse(201, "User Registered Successfully Plaease veriy your email")
