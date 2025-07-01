@@ -10,6 +10,7 @@ const RegisterPage = () => {
   const[confirmPassword,setConfirmPassword]=useState("");
 
   const router = useRouter();
+  
 
   const handleSubmit =async (e:FormEvent<HTMLFormElement>)=>
     {

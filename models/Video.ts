@@ -16,7 +16,6 @@ export interface IVideo {
     transformation: {
         width: number;
         height: number;
-        quality?: number;
     };
     createdAt?: Date;
     updatedAt?: Date;
@@ -57,11 +56,6 @@ const videoSchema = new Schema<IVideo>(
                 type: Number,
                 default: VIDEO_DIMENSIONS.width
             },
-            quality: {
-                type: Number,
-                min: 1,
-                max: 100
-            }
         },
         user: {
             type: Schema.Types.ObjectId,

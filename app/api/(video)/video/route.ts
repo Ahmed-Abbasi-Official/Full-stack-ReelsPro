@@ -9,6 +9,7 @@ import { asyncHandler } from "@/utils/asyncHandler";
 import { nextError, nextResponse } from "@/utils/Response";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 
 export async function GET(req:NextRequest)
 {
@@ -29,9 +30,7 @@ export async function GET(req:NextRequest)
             )
 
     } catch (error) {
-        return NextResponse.json(
-                new ApiError(500,"Fetched Videos Failed !"),{status:500}
-            )
+        return nextError(500,"Internal Server Error",error)
     }
 }
 
@@ -71,7 +70,6 @@ export async function POST(req:NextRequest)
             transformation:{
                 height:1920,
                 width:1080,
-                quality:body.transformation?.quality ?? 100
             },
             user:session.user._id
 
@@ -88,25 +86,38 @@ export async function POST(req:NextRequest)
     }
 };
 
-export const DELETE=asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
-    const {videoId} = await req.json();
+export const DELETE = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
+  const data = await req.json();
 
-    if(!videoId){
-     return   nextError(400,"Give me video ID");
-    }
+  if (!data.videoId) {
+    return nextError(400, "Give me video ID");
+  }
 
-     const [videoResult, commentResult, likeResult] = await Promise.all(
-        [
-           Video.deleteOne({_id:videoId}),
-           Comment.deleteMany({video:videoId}),
-           Like.deleteMany({video:videoId}) 
-        ]
-    );
+  if (!mongoose.Types.ObjectId.isValid(data.videoId)) {
+    return nextError(400, "Invalid video ID");
+  }
 
-    if(!videoResult || !commentResult || !likeResult){
-       return nextError(404,"Error in Deleteting Video!");
-    };
+  const [videoResult, commentResult, likeResult] = await Promise.all([
+    Video.deleteOne({ _id: data.videoId }),
+    Comment.deleteMany({ video: data.videoId }),
+    Like.deleteMany({ video: data.videoId }),
+  ]);
 
-    return nextResponse(200,"Video Delete Succesfully!");
+  if (
+    videoResult.deletedCount === 0 &&
+    commentResult.deletedCount === 0 &&
+    likeResult.deletedCount === 0
+  ) {
+    return nextError(404, "No related data found to delete.");
+  }
 
-})
+  return NextResponse.json({
+    success: true,
+    message: "Video deleted successfully",
+    deleted: {
+      video: videoResult.deletedCount,
+      comments: commentResult.deletedCount,
+      likes: likeResult.deletedCount,
+    },
+  });
+});

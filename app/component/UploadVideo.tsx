@@ -1,37 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Video, Upload, X } from "lucide-react";
 import FileUpload from "./FileUpload"; // Adjust the path as needed
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function UploadVideo() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isPublic, setIsPublic] = useState(true);
-    const [videoUrl, setVideoUrl] = useState("");
+    const [videoUrl, setVideoUrl] = useState<any>("");
+    const router = useRouter();
 
+
+   
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if(!videoUrl){
-           return alert("Required Video URL")
+        if (!videoUrl) {
+            return alert("Required Video URL")
         }
+
 
         try {
             const data = {
                 title,
                 description,
                 isPublic,
-                videoUrl,
+                videoUrl: videoUrl?.url,
+                transformation: {
+                    height: videoUrl?.height,
+                    width: videoUrl?.width,
+                }
             }
 
             const res = await axios.post('/api/video', data)
-            
+            console.log(res);
+
+            router.replace(`/reels/${res.data.data._id}`)
+
         } catch (error) {
             console.log(error)
-        }finally{
+        } finally {
             setTitle("")
             setDescription("")
             setVideoUrl("")
@@ -80,7 +92,7 @@ export default function UploadVideo() {
                                     fileType="video"
                                     onSuccess={(res) => {
                                         console.log("Upload Response:", res);
-                                        setVideoUrl(res.url);
+                                        setVideoUrl(res);
                                     }}
                                     onProgress={(res) => setUploadProgress(res)}
                                 />
