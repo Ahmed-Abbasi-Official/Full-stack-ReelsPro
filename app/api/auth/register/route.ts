@@ -10,7 +10,7 @@ import { sendVerificationCode } from "@/lib/mailer/nodemailer";
 export async function POST(request: NextRequest) {
 
     try {
-        const { username, email, password } = await request.json();
+        const { username, email, password , profilePic } = await request.json();
 
         if (!email || !password) {
             const response = new ApiError(400, "Email and password are required");
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
             } else {
                 existingEmail.username = username;
                 existingEmail.password = password;
+                existingEmail.markModified('password');
                 existingEmail.code = code;
                 existingEmail.codeExpiry = new Date(Date.now() + 60000); // 60 seconds
                 await existingEmail.save();
@@ -74,6 +75,7 @@ export async function POST(request: NextRequest) {
                 password,
                 code,
                 codeExpiry,
+                profilePic:profilePic || "",
                 isVerified: false
             })
 

@@ -9,10 +9,10 @@ export const VIDEO_DIMENSIONS =
 export interface IVideo {
     __id?: mongoose.Types.ObjectId;
     title: string;
-    description: string;
+    description?: string;
     videoUrl: string;
-    thumbnailUrl: string;
-    controls?: boolean;
+    views: number;
+    isPublic?: boolean;
     transformation: {
         width: number;
         height: number;
@@ -20,6 +20,7 @@ export interface IVideo {
     };
     createdAt?: Date;
     updatedAt?: Date;
+    user: mongoose.Types.ObjectId;
 };
 
 
@@ -31,17 +32,18 @@ const videoSchema = new Schema<IVideo>(
         },
         description: {
             type: String,
-            required: true
+            required: true,
+            default:""
         },
         videoUrl: {
             type: String,
             required: true
         },
-        thumbnailUrl: {
-            type: String,
-            required: true
+        views: {
+            type: Number,
+            default:0
         },
-        controls: {
+        isPublic: {
             type: Boolean,
             default: true
         },
@@ -60,11 +62,15 @@ const videoSchema = new Schema<IVideo>(
                 min: 1,
                 max: 100
             }
+        },
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: "User"
         }
     }, { timestamps: true }
 );
 
-const Video = models?.Video || model<IVideo>('Video',videoSchema);
+const Video = models?.Video || model<IVideo>('Video', videoSchema);
 
-export default Video ;
+export default Video;
 

@@ -5,6 +5,7 @@ import React, { FormEvent, useState } from 'react'
 
 const RegisterPage = () => {
   const [email,setEmail]=useState("");
+  const [username,setUsername]=useState("");
   const[password,setPassword]=useState("");
   const[confirmPassword,setConfirmPassword]=useState("");
 
@@ -20,6 +21,8 @@ const RegisterPage = () => {
           alert("Password not match");
           return;
         }
+
+        console.log(username)
   
         const response = await fetch('/api/auth/register',{
           method:'POST',
@@ -28,6 +31,7 @@ const RegisterPage = () => {
           },
           body:JSON.stringify(
             {
+              username,
               email,
               password
             }
@@ -53,6 +57,12 @@ const RegisterPage = () => {
     <div>
       <h1>Register</h1>
       <form onSubmit={handleSubmit}>
+        <input type="text"
+        placeholder='Username'
+        value={username}
+        onChange={(e)=>setUsername(e.target.value)}
+        required
+        />
         <input type="email"
         placeholder='Email'
         value={email}

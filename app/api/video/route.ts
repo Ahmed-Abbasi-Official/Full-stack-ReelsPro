@@ -1,8 +1,12 @@
 import { authOptions } from "@/lib/auth";
 import { DBConnect } from "@/lib/db";
+import Comment from "@/models/Comment.model";
+import Like from "@/models/Like.model";
 import Video, { IVideo } from "@/models/Video";
 import { ApiError } from "@/utils/ApiError";
 import { ApiResponse } from "@/utils/ApiResponse";
+import { asyncHandler } from "@/utils/asyncHandler";
+import { nextError, nextResponse } from "@/utils/Response";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -45,29 +49,31 @@ export async function POST(req:NextRequest)
         }
 
 
+
         await DBConnect();
 
         const body:IVideo = await req.json();
 
+        
         if(
             !body.title ||
-            !body.description ||
             !body.videoUrl ||
-            !body.thumbnailUrl
+            !body.description
         ){
-            return NextResponse.json(
-                new ApiError(400,"Missing required Field!"),{status:400}
-            )
+            return  nextError(400,"Required missing field!")
         }
+
+
 
         const videoData = {
             ...body,
-            controls:body.controls ?? true,
+            isPublic:body.isPublic ?? true,
             transformation:{
                 height:1920,
                 width:1080,
                 quality:body.transformation?.quality ?? 100
-            }
+            },
+            user:session.user._id
 
         };
 
@@ -78,8 +84,29 @@ export async function POST(req:NextRequest)
         );
 
     } catch (error) {
-        return NextResponse.json(
-            new ApiError(500,"Error in Create Video !"),{status:500}
-        );
+       return nextError(500,"Internal server error",error)
     }
 };
+
+export const DELETE=asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
+    const {videoId} = await req.json();
+
+    if(!videoId){
+     return   nextError(400,"Give me video ID");
+    }
+
+     const [videoResult, commentResult, likeResult] = await Promise.all(
+        [
+           Video.deleteOne({_id:videoId}),
+           Comment.deleteMany({video:videoId}),
+           Like.deleteMany({video:videoId}) 
+        ]
+    );
+
+    if(!videoResult || !commentResult || !likeResult){
+       return nextError(404,"Error in Deleteting Video!");
+    };
+
+    return nextResponse(200,"Video Delete Succesfully!");
+
+})

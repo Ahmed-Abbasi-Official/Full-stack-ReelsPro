@@ -12,10 +12,19 @@ export interface IUser {
     _id?: mongoose.Types.ObjectId;
     createdAt?: Date;
     updatedAt?: Date;
-    followers: [mongoose.Types.ObjectId];
-    following: [mongoose.Types.ObjectId];
+    followers: mongoose.Types.ObjectId[];
+  following: mongoose.Types.ObjectId[];
     profilePic?:string;
 };
+
+export interface ExtendedUser {
+  _id: string;
+  email: string;
+  username: string;
+  isVerified: boolean;
+  isAcceptingMessages: boolean;
+}
+
 
 const userSchema = new Schema<IUser>({
     username: {
@@ -61,11 +70,12 @@ const userSchema = new Schema<IUser>({
 
 }, { timestamps: true });
 
-userSchema.pre('save', async function (next) {
-    if (this.isModified('password')) {
-        await bcrypt.hash(this.password, 10);
-    }
-    next();
+userSchema.pre("save", async function (next) {
+  console.log("🚀 Pre-save triggered");
+
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
 
