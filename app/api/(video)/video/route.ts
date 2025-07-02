@@ -30,6 +30,7 @@ export async function GET(req:NextRequest)
             )
 
     } catch (error) {
+      // console.log(error)
         return nextError(500,"Internal Server Error",error)
     }
 }
@@ -87,7 +88,16 @@ export async function POST(req:NextRequest)
 };
 
 export const DELETE = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
+  const session = await getServerSession(authOptions);
+
+      if(!session)
+      {
+          return NextResponse.json(
+              new ApiError(401,"Unauthorized"),{status:401}
+          )
+      }
   const data = await req.json();
+
 
   if (!data.videoId) {
     return nextError(400, "Give me video ID");
@@ -96,6 +106,16 @@ export const DELETE = asyncHandler(async (req: NextRequest): Promise<NextRespons
   if (!mongoose.Types.ObjectId.isValid(data.videoId)) {
     return nextError(400, "Invalid video ID");
   }
+
+  console.log(data.videoId)
+
+  const video = await Video.findOne({_id:new mongoose.Types.ObjectId(data.videoId)})
+  console.log(video)
+  console.log("Sesision",session)
+
+  if(video.user._id === session.user?._id){
+    return nextError(400,"You are not allowed to delete video");
+  };
 
   const [videoResult, commentResult, likeResult] = await Promise.all([
     Video.deleteOne({ _id: data.videoId }),

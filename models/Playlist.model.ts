@@ -3,7 +3,8 @@ import { required } from "zod/v4-mini";
 
 export interface IPlaylist{
     playlistName:string;
-    video:mongoose.Schema.Types.ObjectId;
+    videos:mongoose.Schema.Types.ObjectId[];
+    user:mongoose.Schema.Types.ObjectId;
 }
 
 const playlistSchema = new Schema<IPlaylist>({
@@ -11,13 +12,22 @@ const playlistSchema = new Schema<IPlaylist>({
         type:String,
         required:[true,"Name is required"]
     },
-    video:{
+    videos:[
+        {
         type:Schema.Types.ObjectId,
-        ref:"Video"
+        ref:"Video",
+        index:true
     }
+    ],
+    user:{
+        type:Schema.Types.ObjectId,
+        ref:"User",
+        index:true
+    },
+
 })
 
 
-const PlaylistName = mongoose.models?.PlaylistName || mongoose.model("PlaylistName",playlistSchema);
+const Playlist = mongoose.models?.PlaylistName || mongoose.model("PlaylistName",playlistSchema);
 
-export default PlaylistName;
+export default Playlist;

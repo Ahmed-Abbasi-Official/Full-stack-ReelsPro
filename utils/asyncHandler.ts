@@ -11,6 +11,7 @@ const asyncHandler = (
         {
           status: 500,
           message: error instanceof Error ? error.message : "Internal Server Error",
+          error:error
         },
         { status: 500 }
       );

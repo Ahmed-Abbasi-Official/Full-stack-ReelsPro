@@ -7,7 +7,7 @@ export const VIDEO_DIMENSIONS =
     } as const;
 
 export interface IVideo {
-    __id?: mongoose.Types.ObjectId;
+    _id?: mongoose.Types.ObjectId;
     title: string;
     description?: string;
     videoUrl: string;
@@ -20,6 +20,8 @@ export interface IVideo {
     createdAt?: Date;
     updatedAt?: Date;
     user: mongoose.Types.ObjectId;
+    isChecked:boolean;
+    isLiked:boolean;
 };
 
 
@@ -60,6 +62,14 @@ const videoSchema = new Schema<IVideo>(
         user: {
             type: Schema.Types.ObjectId,
             ref: "User"
+        },
+        isChecked:{
+            type:Boolean,
+            default:false
+        },
+        isLiked:{
+            type:Boolean,
+            default:false,
         }
     }, { timestamps: true }
 );

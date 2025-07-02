@@ -2,7 +2,7 @@
 
 import { Video } from "@imagekit/next"
 import axios from "axios"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 // import { useSearchParams } from "next/navigation" 
 
@@ -24,7 +24,7 @@ export default function ReelComponent() {
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState("")
   const [isPlaying, setIsPlaying] = useState(true)
-  const [counter, setCounter] = useState(2)
+  const [counter, setCounter] = useState(0)
   const [reels, setReels] = useState<Reel[]>([])
   const [comments, setComments] = useState<Comment[]>([
     {
@@ -49,6 +49,8 @@ export default function ReelComponent() {
       timestamp: "45m",
     },
   ])
+
+  const router = useRouter();
 
 
 
@@ -92,22 +94,27 @@ export default function ReelComponent() {
     });
     console.log(res)
 
-    if(res.data.data.status == 200){
       setCounter((prev)=>prev+1)
-    }
+    
+
+    router.replace(`/reels/${reels[counter]._id}`)
+
+    
 
   }
+  
 
   const getAllVideos = async () => {
     const res = await axios.get(`/api/video`);
     console.log(res)
-    setReels(res.data.data[counter].videoUrl)
+    setReels(res.data.data)
 
   }
 
   useEffect(() => {
     getAllVideos();
   }, [counter])
+
 
   const handleSendComment = () => {
     if (commentText.trim()) {
@@ -127,6 +134,8 @@ export default function ReelComponent() {
     setIsPlaying(!isPlaying)
   }
 
+  console.log("reels : ",reels)
+
   return (
     <div className="max-w-md mx-auto bg-black text-white relative h-screen overflow-hidden">
       {/* Video/Content Area */}
@@ -141,7 +150,7 @@ export default function ReelComponent() {
 
         <Video
           urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
-          src={`${reels}`}
+          src={`${reels[counter]?.videoUrl}`}
           autoPlay
           loop
           muted

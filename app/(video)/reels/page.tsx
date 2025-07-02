@@ -79,7 +79,7 @@ export default function ReelComponent() {
             videoId
         })
 
-        // console.log(res)
+        console.log(res)
 
         setLikesCount((prev) => (isLiked ? prev - 1 : prev + 1))
     }
