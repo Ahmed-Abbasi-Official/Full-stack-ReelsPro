@@ -18,37 +18,24 @@ export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse>
 
     const { videoId, playlistId } = await req.json();
 
-    if (!playlistId || !videoId) {
-        return nextError(400, "Missing Required Fields!");
+    if (!videoId || !playlistId) {
+        return nextError(400, "Missing required field!");
     };
 
-    const video = await Video.findById(videoId);
-
-    
-
-    await Video.findByIdAndUpdate(videoId, {
-        $set: { isChecked: !video.isChecked }
-    }, {
-        new: true
-    });
+    await DBConnect();
 
     const playlist = await Playlist.findById(playlistId);
 
-    if (!playlist) {
-        return nextError(400, "No Playlist Found")
-    };
+    const isCheckedVideoIsPresent = playlist.videos.includes(videoId);
 
-    const isCheckedPLalist = playlist?.videos.includes(videoId);
-
-    const updateQuery = isCheckedPLalist
-        ? {
-            $pull: { video: videoId },
+    const updatedPlaylist = isCheckedVideoIsPresent ? {
+        $pull: { videos: videoId }
+    } :
+        {
+            $push: { videos: videoId }
         }
-        : {
-            $push: { videos: videoId },
-        };
 
-    await Playlist.findByIdAndUpdate(playlistId, updateQuery, { new: true });
+    const updated = await Playlist.findByIdAndUpdate(playlistId, updatedPlaylist, { new: true })
 
-    return nextResponse(200, "Video Save Successfully!");
+    return nextResponse(200, isCheckedVideoIsPresent ? "Video Unsaved Successfully!" : "Video Save Successfully!", updated);
 })

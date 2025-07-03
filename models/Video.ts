@@ -20,8 +20,8 @@ export interface IVideo {
     createdAt?: Date;
     updatedAt?: Date;
     user: mongoose.Types.ObjectId;
-    isChecked:boolean;
-    isLiked:boolean;
+    // isChecked:mongoose.Types.ObjectId[];
+    isLiked:mongoose.Types.ObjectId[];
 };
 
 
@@ -63,14 +63,10 @@ const videoSchema = new Schema<IVideo>(
             type: Schema.Types.ObjectId,
             ref: "User"
         },
-        isChecked:{
-            type:Boolean,
-            default:false
-        },
-        isLiked:{
-            type:Boolean,
-            default:false,
-        }
+        isLiked:[{
+            type:Schema.Types.ObjectId,
+            ref:"User"
+        }]
     }, { timestamps: true }
 );
 
