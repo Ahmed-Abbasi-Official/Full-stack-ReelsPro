@@ -4,6 +4,7 @@ import { Video } from "@imagekit/next"
 import axios from "axios"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import CreatePlaylist from "../../(playlist)/create-playlist/page"
 // import { useSearchParams } from "next/navigation" 
 
 interface Comment {
@@ -21,6 +22,9 @@ interface Reel {
 export default function ReelComponent() {
   const [isLiked, setIsLiked] = useState(false)
   const [likesCount, setLikesCount] = useState(1234)
+  const [playlistName, setPlaylistName] = useState("")
+  const [playlists, setPlaylists] = useState<[]>([])
+  const [showPlaylistCreateModal, setShowPlaylistCreateModal] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState("")
   const [isPlaying, setIsPlaying] = useState(true)
@@ -84,8 +88,36 @@ export default function ReelComponent() {
     console.log("Share clicked")
   }
 
-  const handleDownload = () => {
+  const handleSaved = () => {
     console.log("Download clicked")
+    setShowPlaylistCreateModal((prev)=>!prev)
+  }
+
+  const createPlaylist = async(e:any)=>{
+    e.preventDefault();
+   const res =  await axios.post('/api/create-playlist',{
+      playlistName
+    })
+    console.log("res of playlist creation  : ",res)
+  } 
+
+  const getPlaylists = async()=>{
+    const res =await axios.get(`/api/get-playlist?videoId=${videoId}`);
+    console.log(res);
+  
+      if(res.data.statusCode === 200)
+      {
+        setPlaylists(res.data.data)
+      }
+    
+  }
+
+  const savedVideo = async(playlistId:any)=>{
+   const res = await axios.post('/api/saved-video',{
+      videoId,
+      playlistId
+    });
+    console.log(res)
   }
 
   const handleDelete = async () => {
@@ -108,12 +140,16 @@ export default function ReelComponent() {
     const res = await axios.get(`/api/video`);
     console.log(res)
     setReels(res.data.data)
+    
 
   }
 
   useEffect(() => {
     getAllVideos();
+    getPlaylists();
   }, [counter])
+  // useEffect(() => {
+  // }, [createPlaylist])
 
 
   const handleSendComment = () => {
@@ -134,10 +170,11 @@ export default function ReelComponent() {
     setIsPlaying(!isPlaying)
   }
 
-  console.log("reels : ",reels)
+  console.log("reels : ",playlists)
 
   return (
     <div className="max-w-md mx-auto bg-black text-white relative h-screen overflow-hidden">
+     
       {/* Video/Content Area */}
       <div className="relative h-full">
         {/* Placeholder for video */}
@@ -147,6 +184,8 @@ export default function ReelComponent() {
             <p className="text-lg opacity-80">Video Content Here</p>
           </div>
         </div> */}
+
+        
 
         <Video
           urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
@@ -270,11 +309,11 @@ export default function ReelComponent() {
             <span className="text-xs text-white mt-1">Share</span>
           </div>
 
-          {/* Download Button */}
+          {/* Saved Button */}
           <div className="flex flex-col items-center">
             <button
               className="w-12 h-12 rounded-full bg-gray-800 bg-opacity-50 hover:bg-opacity-70 text-white flex items-center justify-center transition-all duration-200"
-              onClick={handleDownload}
+              onClick={handleSaved}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -388,6 +427,45 @@ export default function ReelComponent() {
           </div>
         </div>
       )}
+
+       {
+            showPlaylistCreateModal &&(
+              <div className="w-full h-fit py-8 rounded bg-black  z-10 absolute top-1/2 text-center p-4">
+                <h1 onClick={()=>setShowPlaylistCreateModal(false)} className="text-xl text-white font-bold">X</h1>
+                {
+                  playlists.length === 0 ? "No Playlist Exist" :(
+                    <>
+                    {
+                      playlists.map((val:any)=>(
+                        <>
+                        <div className="flex gap-4 justify-center">
+                          <h1 onClick={(e)=>{
+                            e.preventDefault();
+                            savedVideo(val._id)
+                          }}>{val.playlistName}</h1>
+                        <h1>{val.isChecked ? "Already Saved" : "you can save"}</h1>
+                        </div>
+                        </>
+                      ))
+                    }
+                    </>
+                  )
+                }
+                <h2 className="text-center py-4 text-white font-bold">Create Playlist</h2>
+                <form onSubmit={createPlaylist}>
+                  <input 
+                type="text"
+                placeholder="Enter the Collection Name"
+                value={playlistName}
+                onChange={(e)=>setPlaylistName(e.target.value)}
+                required
+                className="text-center px-2 py-1 rounded border-white border w-full text-gray-300"
+                />
+                <button type="submit" className="bg-blue-500 px-4 rounded py-1 text-lg mt-2 cursor-pointer">Create</button>
+                </form>
+              </div>
+            )
+        }
     </div>
   )
 }

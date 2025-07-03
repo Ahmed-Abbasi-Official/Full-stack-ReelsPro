@@ -5,7 +5,7 @@ import { asyncHandler } from "@/utils/asyncHandler";
 import { nextError, nextResponse } from "@/utils/Response";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-
+import mongoose from "mongoose";
 export const GET = asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
 
     const session = await getServerSession(authOptions);
@@ -32,10 +32,11 @@ export const GET = asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
         return nextError(400,"Playlist is not found!");
     };
 
-    const updatedPlaylist = playlist?.map((pl)=>{
+
+    const updatedPlaylist = playlist.map((pl)=>{
         return {
             ...pl,
-            isChecked: videoId ? pl.videos.includes(videoId) : false,
+            isChecked: pl.videos.some((p:any)=>p.toString() == videoId.toString()),
         };
     });
 

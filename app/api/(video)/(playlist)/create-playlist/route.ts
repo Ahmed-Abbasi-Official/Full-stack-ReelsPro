@@ -17,6 +17,7 @@ export const POST = asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
     };
 
     const {playlistName} = await req.json();
+    console.log(playlistName)
 
     if(!playlistName){
        return nextError(400,"Missing Required Fields!");
