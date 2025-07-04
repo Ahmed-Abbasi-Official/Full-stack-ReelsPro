@@ -5,6 +5,7 @@ import { asyncHandler } from "@/utils/asyncHandler";
 import { nextError, nextResponse } from "@/utils/Response";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 
 
 export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
@@ -12,13 +13,15 @@ export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse>
 
   if (!session) return nextError(401, "Please login first");
 
-  const { isLiked, videoId } = await req.json();
+  const { isLiked, videoId:id } = await req.json();
+  console.log(id)
 
-  if (typeof isLiked !== "boolean" || !videoId) {
+  if (typeof isLiked !== "boolean" || !id) {
     return nextError(400, "Missing required fields");
   }
 
   const userId = session.user._id;
+  const videoId = new mongoose.Types.ObjectId(id);
 
   const existingLike = await Like.findOne({ user: userId, video: videoId });
 

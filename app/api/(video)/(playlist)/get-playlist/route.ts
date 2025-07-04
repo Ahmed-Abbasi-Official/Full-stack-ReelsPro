@@ -5,7 +5,7 @@ import { asyncHandler } from "@/utils/asyncHandler";
 import { nextError, nextResponse } from "@/utils/Response";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
+
 export const GET = asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
 
     const session = await getServerSession(authOptions);
@@ -40,7 +40,11 @@ export const GET = asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
         };
     });
 
+    // console.log(updatedPlaylist)
+
 
     return nextResponse(200,"Playlist Fetched Successfully!",updatedPlaylist);
 
 })
+
+

@@ -13,16 +13,16 @@ export interface IUser {
     createdAt?: Date;
     updatedAt?: Date;
     followers: mongoose.Types.ObjectId[];
-  following: mongoose.Types.ObjectId[];
-    profilePic?:string;
+    following: mongoose.Types.ObjectId[];
+    profilePic?: string;
 };
 
 export interface ExtendedUser {
-  _id: string;
-  email: string;
-  username: string;
-  isVerified: boolean;
-  isAcceptingMessages: boolean;
+    _id: string;
+    email: string;
+    username: string;
+    isVerified: boolean;
+    isAcceptingMessages: boolean;
 }
 
 
@@ -56,26 +56,30 @@ const userSchema = new Schema<IUser>({
         type: Date,
         required: [true, "Verified Code Expiry is required"],
     },
-    followers:[
-       { type:Schema.Types.ObjectId,
-        ref:"User"}
+    followers: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        }
     ],
-    following:[
-       { type:Schema.Types.ObjectId,
-        ref:"User"}
+    following: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        }
     ],
-    profilePic:{
-        type:String
+    profilePic: {
+        type: String
     }
 
 }, { timestamps: true });
 
 userSchema.pre("save", async function (next) {
-  console.log("🚀 Pre-save triggered");
+    console.log("🚀 Pre-save triggered");
 
-  if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
+    if (!this.isModified("password")) return next();
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
 });
 
 

@@ -82,7 +82,7 @@ export default function ReelComponent() {
 
   const handleComment = () => {
     setShowComments(!showComments)
-  }
+  } 
 
   const handleShare = () => {
     console.log("Share clicked")
@@ -138,7 +138,8 @@ export default function ReelComponent() {
 
   const getAllVideos = async () => {
     const res = await axios.get(`/api/video`);
-    console.log(res)
+    const res2 = await axios.get(`/api/get-single-video?videoId=${videoId}`)
+    console.log("All videos GET : ",res2)
     setReels(res.data.data)
     
 

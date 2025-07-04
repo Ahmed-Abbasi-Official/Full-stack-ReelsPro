@@ -39,7 +39,7 @@ export default function UploadVideo() {
             const res = await axios.post('/api/video', data)
             console.log(res);
 
-            router.replace(`/reels/${res.data.data._id}`)
+            router.replace(`/reels`)
 
         } catch (error) {
             console.log(error)

@@ -23,6 +23,12 @@ export const POST = asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
        return nextError(400,"Missing Required Fields!");
     };
 
+    const playlist = await Playlist.findOne({playlistName});
+
+    if(playlist){
+        return nextError(400,"Already Exist")
+    }
+
     const createPlaylist = await Playlist.create({
         user:session?.user?._id,
         playlistName,

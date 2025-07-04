@@ -1,29 +1,33 @@
+// middleware.ts
 import withAuth from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export default withAuth(
-    function middleware() {
-        return NextResponse.next()
-    },
-    {
-        callbacks: {
-            authorized: ({ token, req }) => {
-                const { pathname } = req.nextUrl;
+  function middleware(req: NextRequest) {
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl;
 
-                if (pathname.startsWith('/api/auth') ||
-                    pathname === '/login' ||
-                    pathname === '/register' ||
-                    pathname.startsWith("/.well-known")
-                ) { return true }
-
-                if(pathname === '/' || pathname === '/api/videos') return true;
-
-                return !!token;
-            }
+        if (
+          pathname.startsWith('/api/auth') ||
+          pathname === '/login' ||
+          pathname === '/register' ||
+          pathname.startsWith("/.well-known") ||
+          pathname === '/' ||
+          pathname === '/api/videos'
+        ) {
+          return true;
         }
+
+        return !!token;
+      }
     }
-)
+  }
+);
 
 export const config = {
-    matcher:["/((?!_next/static|_next/image|favicon.ico|public/).*)"],
-}
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|_next/|public/).*)"],
+};

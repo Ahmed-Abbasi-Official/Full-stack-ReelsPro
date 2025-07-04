@@ -11,91 +11,148 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
-export async function GET(req:NextRequest)
-{
-    try {
-        await DBConnect();
+export async function GET(req: NextRequest) {
+  await DBConnect();
+  try {
 
-        const videos = await Video.find({}).sort({createdAt:-1}).lean();
-
-        if(!videos || videos.length === 0)
-        {
-            return NextResponse.json(
-                new ApiResponse(200,"Fetched Videos Successfully",[]),{status:200}
-            )
-        };
-
-        return NextResponse.json(
-                new ApiResponse(200,"Fetched Videos Successfully",videos),{status:200}
-            )
-
-    } catch (error) {
-      // console.log(error)
-        return nextError(500,"Internal Server Error",error)
+    const videos = await Video.aggregate([
+  {
+    $lookup: {
+      from: "users",
+      localField: "user",
+      foreignField: "_id",
+      as: "owner"
     }
+  },
+  {
+    $lookup: {
+      from: "likes",
+      localField: "_id",
+      foreignField: "video",
+      as: "likedUserDocs"
+    }
+  },
+  {
+    $addFields: {
+      // Fix: Count likes based on likedUserDocs, not a non-existent likedUser field
+      likes: { $size: { $ifNull: ["$likedUserDocs", []] } },
+      // Extract only user IDs from likedUserDocs for the next lookup
+      likedUserIds: {
+        $map: {
+          input: "$likedUserDocs",
+          as: "like",
+          in: "$$like.user"
+        }
+      }
+    }
+  },
+  {
+    $lookup: {
+      from: "users",
+      localField: "likedUserIds",
+      foreignField: "_id",
+      as: "LikedUserInfo"
+    }
+  },
+  {
+    $project: {
+      owner: {
+        $map: {
+          input: "$owner",
+          as: "o",
+          in: {
+            username: "$$o.username",
+            profilePic: "$$o.profilePic"
+          }
+        }
+      },
+      LikedUsers: {
+        $map: {
+          input: "$LikedUserInfo",
+          as: "o",
+          in: {
+            username: "$$o.username",
+            profilePic: "$$o.profilePic"
+          }
+        }
+      },
+      videoUrl: 1,
+      views: 1,
+      likes: 1
+    }
+  }
+]);
+
+
+
+    return NextResponse.json(
+      new ApiResponse(200, "Fetched Videos Successfully", videos), { status: 200 }
+    )
+
+  } catch (error) {
+    // console.log(error)
+    return nextError(500, "Internal Server Error", error)
+  }
 }
 
-export async function POST(req:NextRequest)
-{
-    try {
+export async function POST(req: NextRequest) {
+  try {
 
-        const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions);
 
-        if(!session)
-        {
-            return NextResponse.json(
-                new ApiError(401,"Unauthorized"),{status:401}
-            )
-        }
-
-
-
-        await DBConnect();
-
-        const body:IVideo = await req.json();
-
-        
-        if(
-            !body.title ||
-            !body.videoUrl ||
-            !body.description
-        ){
-            return  nextError(400,"Required missing field!")
-        }
-
-
-
-        const videoData = {
-            ...body,
-            isPublic:body.isPublic ?? true,
-            transformation:{
-                height:1920,
-                width:1080,
-            },
-            user:session.user._id
-
-        };
-
-        const newVideo = await Video.create(videoData);
-
-        return NextResponse.json(
-            new ApiResponse(200,"Video Fetxhed Successfully",newVideo),{status:200}
-        );
-
-    } catch (error) {
-       return nextError(500,"Internal server error",error)
+    if (!session) {
+      return NextResponse.json(
+        new ApiError(401, "Unauthorized"), { status: 401 }
+      )
     }
+
+
+
+    await DBConnect();
+
+    const body: IVideo = await req.json();
+
+
+    if (
+      !body.title ||
+      !body.videoUrl ||
+      !body.description
+    ) {
+      return nextError(400, "Required missing field!")
+    }
+
+
+
+    const videoData = {
+      ...body,
+      isPublic: body.isPublic ?? true,
+      transformation: {
+        height: 1920,
+        width: 1080,
+      },
+      user: session.user._id
+
+    };
+
+    const newVideo = await Video.create(videoData);
+
+    return NextResponse.json(
+      new ApiResponse(200, "Video Fetxhed Successfully", newVideo), { status: 200 }
+    );
+
+  } catch (error) {
+    return nextError(500, "Internal server error", error)
+  }
 };
 
 export const DELETE = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
 
-      if(!session)
-      {
-          return NextResponse.json(
-              new ApiError(401,"Unauthorized"),{status:401}
-          )
-      }
+  if (!session) {
+    return NextResponse.json(
+      new ApiError(401, "Unauthorized"), { status: 401 }
+    )
+  }
   const data = await req.json();
 
 
@@ -109,12 +166,12 @@ export const DELETE = asyncHandler(async (req: NextRequest): Promise<NextRespons
 
   console.log(data.videoId)
 
-  const video = await Video.findOne({_id:new mongoose.Types.ObjectId(data.videoId)})
+  const video = await Video.findOne({ _id: new mongoose.Types.ObjectId(data.videoId) })
   console.log(video)
-  console.log("Sesision",session)
+  console.log("Sesision", session)
 
-  if(video.user._id === session.user?._id){
-    return nextError(400,"You are not allowed to delete video");
+  if (video.user._id === session.user?._id) {
+    return nextError(400, "You are not allowed to delete video");
   };
 
   const [videoResult, commentResult, likeResult] = await Promise.all([
