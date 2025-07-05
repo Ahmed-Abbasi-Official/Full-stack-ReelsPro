@@ -13,7 +13,7 @@ if (!cached) {
 };
 
 export async function DBConnect() {
-    if (cached.conn) {
+    if (cached?.conn) {
         return cached.conn;
     };
 

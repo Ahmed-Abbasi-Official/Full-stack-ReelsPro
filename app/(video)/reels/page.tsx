@@ -4,15 +4,13 @@ import { Video } from "@imagekit/next"
 import axios from "axios"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import CreatePlaylist from "../(playlist)/create-playlist/page"
 // import { useSearchParams } from "next/navigation" 
 
 interface Comment {
-  id: string
-  user: string
-  avatar: string
-  text: string
-  timestamp: string
+  _id?: string
+  username?: string
+  comment: string
+  parentCommentId?: any
 }
 interface Reel {
   videoUrl: string;
@@ -28,35 +26,20 @@ export default function ReelComponent() {
   const [showPlaylistCreateModal, setShowPlaylistCreateModal] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState("")
+  const [reply, setReply] = useState("")
   const [isPlaying, setIsPlaying] = useState(true)
   const [counter, setCounter] = useState(0)
   const [reels, setReels] = useState<Reel[]>([])
   const [videoId, setVideoId] = useState('')
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: "1",
-      user: "john_doe",
-      avatar: "/placeholder.svg?height=32&width=32",
-      text: "Amazing content! 🔥",
-      timestamp: "2h",
-    },
-    {
-      id: "2",
-      user: "sarah_wilson",
-      avatar: "/placeholder.svg?height=32&width=32",
-      text: "This is so cool! How did you make this?",
-      timestamp: "1h",
-    },
-    {
-      id: "3",
-      user: "mike_chen",
-      avatar: "/placeholder.svg?height=32&width=32",
-      text: "Love the creativity! 👏",
-      timestamp: "45m",
-    },
-  ])
+  const [comments, setComments] = useState<Comment[]>([])
 
   const router = useRouter();
+
+  const getAllComments = async()=>{
+    const res = await axios.get(`/api/comment?videoId=${videoId}`);
+    console.log("Commnets : ",res);
+    setComments(res.data?.data);
+  }
 
 
 
@@ -161,12 +144,18 @@ export default function ReelComponent() {
     // getAllVideos();
        if (reels.length > 0 && reels[counter]) {
     setVideoId(reels[counter]._id);
+    
 
     console.log("Get Video ID", reels[counter]._id);
     
   }
     
+    
   }, [reels,counter])
+
+   useEffect(() => {
+  getAllComments();
+}, [reels,counter,videoId]); 
 
   
     //   if(reels){
@@ -180,25 +169,38 @@ export default function ReelComponent() {
   // }, [createPlaylist])
 
 
-  const handleSendComment = () => {
+  const handleSendComment =async () => {
     if (commentText.trim()) {
-      const newComment: Comment = {
-        id: Date.now().toString(),
-        user: "current_user",
-        avatar: "/placeholder.svg?height=32&width=32",
-        text: commentText,
-        timestamp: "now",
+      const newComment = {
+        comment: commentText,
+        videoId
       }
       setComments([newComment, ...comments])
       setCommentText("")
+     const res =  await axios.post('/api/comment',newComment);
+     console.log("Create Comment" , res);
     }
+  }
+
+  const handleReply = async(parentCommentId:any)=>{
+
+    // e.preventDefault();
+
+   const res = await axios.post('/api/comment/reply',{
+      comment:reply,
+      videoId,
+      parentCommentId
+    });
+
+    console.log("Reply : ",res)
+
   }
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
   }
 
-  console.log("reels : ",playlists)
+  console.log("reels : ",comments)
 
   return (
     <div className="max-w-md mx-auto bg-black text-white relative h-screen overflow-hidden">
@@ -316,7 +318,7 @@ export default function ReelComponent() {
                 />
               </svg>
             </button>
-            <span className="text-xs text-white mt-1">{comments.length}</span>
+            <span className="text-xs text-white mt-1">{comments?.length}</span>
           </div>
 
           {/* Share Button */}
@@ -404,24 +406,45 @@ export default function ReelComponent() {
 
           <div className="flex-1 overflow-y-auto p-4">
             <div className="space-y-4">
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
-                  <img
+              {comments &&  (
+                 comments.map((comment) => (
+                  <>
+                <div key={comment._id} className="flex gap-3">
+                  {/* <img
                     src={comment.avatar || "/placeholder.svg"}
                     alt={comment.user}
                     className="w-8 h-8 rounded-full object-cover"
-                  />
+                    /> */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-white text-sm">{comment.user}</span>
-                      <span className="text-gray-400 text-xs">{comment.timestamp}</span>
+                      <span className="font-semibold text-white text-sm">{comment.username}</span>
+                      {/* <span className="text-gray-400 text-xs">{comment.timestamp}</span> */}
                     </div>
-                    <p className="text-white text-sm mt-1">{comment.text}</p>
+                    <p className="text-white text-sm mt-1">{comment.comment}</p>
+                  </div>
+                   <div className="flex justify-center  items-center rou">
+                    <h2>reply : </h2>
+                 <form onSubmit={(e)=>{
+                  e.preventDefault();
+                  handleReply(comment._id)
+                 }}>
+                   <input 
+                  type="text"
+                  value={reply}
+                  onChange={(e)=>setReply(e.target.value)}
+                  className="border border-white"
+                  />
+                  <button type="submit" className="border border-blue-600">reply</button>
+                 </form>
+
                   </div>
                 </div>
-              ))}
+                    </>
+              ))
+              )}
             </div>
           </div>
+                 
 
           {/* Comment Input */}
           <div className="p-4 border-t border-gray-700">
