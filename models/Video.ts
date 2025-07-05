@@ -21,7 +21,6 @@ export interface IVideo {
     updatedAt?: Date;
     user: mongoose.Types.ObjectId;
     // isChecked:mongoose.Types.ObjectId[];
-    isLiked:mongoose.Types.ObjectId[];
 };
 
 
@@ -63,10 +62,6 @@ const videoSchema = new Schema<IVideo>(
             type: Schema.Types.ObjectId,
             ref: "User"
         },
-        isLiked:[{
-            type:Schema.Types.ObjectId,
-            ref:"User"
-        }]
     }, { timestamps: true }
 );
 

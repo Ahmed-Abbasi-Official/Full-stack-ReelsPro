@@ -153,8 +153,13 @@ export default function ReelComponent() {
     
   }, [reels,counter])
 
+  const handleIncreaseViews = async()=>{
+    await axios.get(`/api/increase-views?videoId=${videoId}`)
+  } 
+
    useEffect(() => {
   getAllComments();
+  handleIncreaseViews();
 }, [reels,counter,videoId]); 
 
   
