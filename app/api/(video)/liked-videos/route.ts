@@ -14,7 +14,7 @@ export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse>
   if (!session) return nextError(401, "Please login first");
 
   const { isLiked, videoId:id } = await req.json();
-  console.log(id)
+  console.log(isLiked)
 
   if (typeof isLiked !== "boolean" || !id) {
     return nextError(400, "Missing required fields");
@@ -22,16 +22,19 @@ export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse>
 
   const userId = session.user._id;
   const videoId = new mongoose.Types.ObjectId(id);
+  if(!videoId){
+    return nextError(400,"VideoId not Found!")
+  }
 
   const existingLike = await Like.findOne({ user: userId, video: videoId });
 
-  if (isLiked && existingLike) {
+  if (!isLiked && existingLike) {
     // Unliking the video
     await Like.deleteOne({ _id: existingLike._id });
     return nextResponse(200, "Video unliked successfully");
   }
 
-  if (!isLiked && !existingLike) {
+  if (isLiked && !existingLike) {
     // Liking the video
     await Like.create({ user: userId, video: videoId });
     return nextResponse(200, "Video liked successfully");

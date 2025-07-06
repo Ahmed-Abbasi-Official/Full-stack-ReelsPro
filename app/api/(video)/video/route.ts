@@ -13,87 +13,129 @@ import mongoose from "mongoose";
 
 export async function GET(req: NextRequest) {
   await DBConnect();
-  try {
 
+  const session = await getServerSession(authOptions);
+  const loggedInUserId = session?.user?._id;
+
+  try {
     const videos = await Video.aggregate([
-  {
-    $lookup: {
-      from: "users",
-      localField: "user",
-      foreignField: "_id",
-      as: "owner"
-    }
-  },
-  {
-    $lookup: {
-      from: "likes",
-      localField: "_id",
-      foreignField: "video",
-      as: "likedUserDocs"
-    }
-  },
-  {
-    $addFields: {
-      // Fix: Count likes based on likedUserDocs, not a non-existent likedUser field
-      likes: { $size: { $ifNull: ["$likedUserDocs", []] } },
-      // Extract only user IDs from likedUserDocs for the next lookup
-      likedUserIds: {
-        $map: {
-          input: "$likedUserDocs",
-          as: "like",
-          in: "$$like.user"
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "owner"
+        }
+      },
+      {
+        $lookup: {
+          from: "likes",
+          localField: "_id",
+          foreignField: "video",
+          as: "likedUserDocs"
+        }
+      },
+      {
+        $addFields: {
+          likes: { $size: { $ifNull: ["$likedUserDocs", []] } },
+          likedUserIds: {
+            $map: {
+              input: "$likedUserDocs",
+              as: "like",
+              in: "$$like.user"
+            }
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "likedUserIds",
+          foreignField: "_id",
+          as: "LikedUserInfo"
+        }
+      },
+      ...(loggedInUserId
+        ? [
+            {
+              $lookup: {
+                from: "subscribes",
+                let: { videoOwner: "$user" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ["$subscribedTo", "$$videoOwner"] },
+                          { $eq: ["$subscriber", new mongoose.Types.ObjectId(loggedInUserId)] }
+                        ]
+                      }
+                    }
+                  }
+                ],
+                as: "subscriptionInfo"
+              }
+            },
+            {
+              $addFields: {
+                isSubscribed: {
+                  $cond: {
+                    if: { $gt: [{ $size: "$subscriptionInfo" }, 0] },
+                    then: true,
+                    else: false
+                  }
+                }
+              }
+            }
+          ]
+        : [
+            {
+              $addFields: {
+                isSubscribed: false
+              }
+            }
+          ]),
+      {
+        $project: {
+          owner: {
+            $map: {
+              input: "$owner",
+              as: "o",
+              in: {
+                username: "$$o.username",
+                profilePic: "$$o.profilePic"
+              }
+            }
+          },
+          LikedUsers: {
+            $map: {
+              input: "$LikedUserInfo",
+              as: "o",
+              in: {
+                username: "$$o.username",
+                profilePic: "$$o.profilePic"
+              }
+            }
+          },
+          videoUrl: 1,
+          views: 1,
+          likes: 1,
+          user: 1,
+          isSubscribed: 1
         }
       }
-    }
-  },
-  {
-    $lookup: {
-      from: "users",
-      localField: "likedUserIds",
-      foreignField: "_id",
-      as: "LikedUserInfo"
-    }
-  },
-  {
-    $project: {
-      owner: {
-        $map: {
-          input: "$owner",
-          as: "o",
-          in: {
-            username: "$$o.username",
-            profilePic: "$$o.profilePic"
-          }
-        }
-      },
-      LikedUsers: {
-        $map: {
-          input: "$LikedUserInfo",
-          as: "o",
-          in: {
-            username: "$$o.username",
-            profilePic: "$$o.profilePic"
-          }
-        }
-      },
-      videoUrl: 1,
-      views: 1,
-      likes: 1
-    }
-  }
-]);
-
-
+    ]);
 
     return NextResponse.json(
-      new ApiResponse(200, "Fetched Videos Successfully", videos), { status: 200 }
-    )
-
+      new ApiResponse(200, "Fetched Videos Successfully", videos),
+      { status: 200 }
+    );
   } catch (error) {
-    // console.log(error)
-    return nextError(500, "Internal Server Error", error)
+    return nextError(500, "Internal Server Error", error);
   }
 }
+
 
 export async function POST(req: NextRequest) {
   try {

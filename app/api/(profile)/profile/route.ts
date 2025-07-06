@@ -76,7 +76,8 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
             _id: 1,
             createdAt: 1,
             likesCount: 1,
-            totalLikes: 1
+            totalLikes: 1,
+            videoUrl:1
           }
         }
       ],

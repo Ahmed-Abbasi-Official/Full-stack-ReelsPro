@@ -29,7 +29,7 @@ export default function ReelComponent() {
   const [commentText, setCommentText] = useState("")
   const [isPlaying, setIsPlaying] = useState(true)
   const [counter, setCounter] = useState(0)
-  const [reels, setReels] = useState<Reel[]>([])
+  const [reels, setReels] = useState<any>([])
   const [comments, setComments] = useState<Comment[]>([
     {
       id: "1",
@@ -62,6 +62,7 @@ export default function ReelComponent() {
   // console.log(videoId)
 
   const { videoId } = useParams<{ videoId: string }>();
+  console.log(videoId)
 
   const handleLike = async () => {
     setIsLiked(!isLiked)
@@ -271,7 +272,7 @@ export default function ReelComponent() {
                 />
               </svg>
             </button>
-            <span className="text-xs text-white mt-1">{likesCount}</span>
+           <span className="text-xs text-white mt-1">{reels[counter]?.likes || 0}</span>
           </div>
 
           {/* Comment Button */}

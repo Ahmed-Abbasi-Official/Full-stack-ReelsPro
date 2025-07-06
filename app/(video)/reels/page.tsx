@@ -15,11 +15,13 @@ interface Comment {
 interface Reel {
   videoUrl: string;
   _id:string;
-  likes:number
+  likes:number;
+  user?:string
   // add other properties if needed
 }
 export default function ReelComponent() {
   const [isLiked, setIsLiked] = useState(false)
+  const [isSub, setIsSub] = useState(false)
   const [likesCount, setLikesCount] = useState(1234)
   const [playlistName, setPlaylistName] = useState("")
   const [playlists, setPlaylists] = useState<[]>([])
@@ -43,11 +45,6 @@ export default function ReelComponent() {
 
 
 
-  // const videoId = useSearchParams();
-  // console.log(videoId)
-
-//   const { videoId } = useParams<{ videoId: string }>();
-
   const handleLike = async () => {
     setIsLiked(!isLiked)
 
@@ -69,6 +66,7 @@ export default function ReelComponent() {
 
   const handleComment = () => {
     setShowComments(!showComments)
+    getAllComments()
   } 
 
   const handleShare = () => {
@@ -158,7 +156,7 @@ export default function ReelComponent() {
   } 
 
    useEffect(() => {
-  getAllComments();
+  // getAllComments();
   handleIncreaseViews();
 }, [reels,counter,videoId]); 
 
@@ -199,13 +197,24 @@ export default function ReelComponent() {
 
     console.log("Reply : ",res)
 
+    
+
   }
+
+  const handleFollow = async()=>{
+      await axios.post(`/api/follow`,{
+        isSub,
+        channelId:reels[counter]?.user
+      })
+    }
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
   }
 
   console.log("reels : ",comments)
+
+  
 
   return (
     <div className="max-w-md mx-auto bg-black text-white relative h-screen overflow-hidden">
@@ -265,7 +274,13 @@ export default function ReelComponent() {
               <h3 className="font-semibold text-white">@creative_creator</h3>
               <p className="text-sm text-gray-300">Content Creator</p>
             </div>
-            <button className="px-4 py-1 text-sm font-medium text-white border border-white rounded-md hover:bg-white hover:text-black transition-colors duration-200">
+            <button 
+            onClick={(e)=>{
+              e.preventDefault();
+              handleFollow();
+              setIsSub((prev)=>!prev)
+            }}
+            className="px-4 py-1 text-sm font-medium text-white border border-white rounded-md hover:bg-white hover:text-black transition-colors duration-200">
               Follow
             </button>
           </div>

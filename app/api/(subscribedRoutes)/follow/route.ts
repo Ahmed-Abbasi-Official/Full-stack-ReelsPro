@@ -6,6 +6,7 @@ import { asyncHandler } from "@/utils/asyncHandler";
 import { nextError, nextResponse } from "@/utils/Response";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 
 export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
 
@@ -21,14 +22,19 @@ export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse>
         return nextError(400, "Missing required fields")
     };
 
+    if(channelId === session?.user?._id)
+    {
+        return nextError(400,"You can subscribed yourself!");
+    };
+
     if (isSubs) {
         await Subscription.create({
-            channel: channelId,
+            channel: new mongoose.Types.ObjectId(channelId),
             subscriber: session?.user._id,
         });
         return nextResponse(200,"User Subscribed Successfully!")
     } else {
-        await Subscription.findOneAndDelete({ channel: channelId, subscriber: session?.user._id, });
+        await Subscription.findOneAndDelete({ channel: new mongoose.Types.ObjectId(channelId), subscriber: session?.user._id, });
         return nextResponse(200,"User UnSubscribed Successfully!")
     }
 })

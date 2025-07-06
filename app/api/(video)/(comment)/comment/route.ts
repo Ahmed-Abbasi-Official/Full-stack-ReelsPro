@@ -34,7 +34,7 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
     const { searchParams } = new URL(req.url);
 
     const id = searchParams.get("videoId");
-    // console.log(id)
+    console.log("id of comment",id)
 
 
     if (!id) {
@@ -42,8 +42,12 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
     };
 
     const videoId = new mongoose.Types.ObjectId(id);
+    if(!videoId){
+      return nextError(400,"VideoId is Missing");
+    };
 
     const comments = await Comment.find({ videoId }).sort({ createdAt: -1 });
+    console.log("comments",comments)
 
     if (!comments) {
         return nextError(400, "Error in getting Comments");
