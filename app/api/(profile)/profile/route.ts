@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
-export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
+export const GET = asyncHandler(async (): Promise<NextResponse> => {
     await DBConnect();
 
     const session = await getServerSession(authOptions);
@@ -17,6 +17,7 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
     }
 
     const userId = session.user._id;
+    console.log("userId",userId)
 
     const user = await User.aggregate([
   { $match: { _id: new mongoose.Types.ObjectId(userId) } },
@@ -130,6 +131,8 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
     }
   }
 ]);
+
+console.log("user",user)
 
 
     if (!user || user.length === 0) {

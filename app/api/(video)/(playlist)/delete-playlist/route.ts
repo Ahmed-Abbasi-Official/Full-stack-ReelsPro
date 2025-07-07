@@ -1,16 +1,14 @@
 import { authOptions } from "@/lib/auth";
 import { DBConnect } from "@/lib/db";
 import Playlist from "@/models/Playlist.model";
-import Video from "@/models/Video";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { nextError, nextResponse } from "@/utils/Response";
-import { Session } from "inspector/promises";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 
 export const DELETE = asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
-
+await DBConnect();
     const session = await getServerSession(authOptions);
     
         if (!session) {
@@ -25,6 +23,6 @@ export const DELETE = asyncHandler(async(req:NextRequest):Promise<NextResponse>=
 
     const playlist = await Playlist.findByIdAndDelete(playlistId);
 
-    return nextResponse(200,"Playlist Delete Successfully!");
+    return nextResponse(200,"Playlist Delete Successfully!",playlist);
 })
 

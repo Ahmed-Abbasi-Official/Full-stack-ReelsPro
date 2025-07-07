@@ -10,7 +10,7 @@ import mongoose from "mongoose";
 
 export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
-
+  await DBConnect();
   if (!session) return nextError(401, "Please login first");
 
   const { isLiked, videoId:id } = await req.json();

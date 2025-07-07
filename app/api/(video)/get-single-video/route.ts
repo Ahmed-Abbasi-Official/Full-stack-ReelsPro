@@ -1,13 +1,7 @@
-import { authOptions } from "@/lib/auth";
 import { DBConnect } from "@/lib/db";
-import Comment from "@/models/Comment.model";
-import Like from "@/models/Like.model";
-import Video, { IVideo } from "@/models/Video";
-import { ApiError } from "@/utils/ApiError";
+import Video from "@/models/Video";
 import { ApiResponse } from "@/utils/ApiResponse";
-import { asyncHandler } from "@/utils/asyncHandler";
-import { nextError, nextResponse } from "@/utils/Response";
-import { getServerSession } from "next-auth";
+import { nextError } from "@/utils/Response";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 

@@ -6,7 +6,7 @@ import Video, { IVideo } from "@/models/Video";
 import { ApiError } from "@/utils/ApiError";
 import { ApiResponse } from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
-import { nextError, nextResponse } from "@/utils/Response";
+import { nextError } from "@/utils/Response";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";

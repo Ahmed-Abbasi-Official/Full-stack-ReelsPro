@@ -1,38 +1,46 @@
-import mongoose from "mongoose";
+import mongoose, { Connection } from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
 if (!MONGODB_URI) {
-    throw new Error("Please define mongodb URI in env file");
+  throw new Error("Please define the MONGODB_URI environment variable");
+}
+
+// Add caching type to global
+declare global {
+  var mongoose: {
+    conn: Connection | null;
+    promise: Promise<Connection> | null;
+  };
 }
 
 let cached = global.mongoose;
 
 if (!cached) {
-     global.mongoose = { conn: null, promise: null };
-};
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
 export async function DBConnect() {
-    if (cached?.conn) {
-        return cached.conn;
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 30000, // wait up to 30s
+      maxPoolSize: 10,
     };
 
-    if (!cached.promise) {
-        const opts = 
-        {
-            bufferCommands : true,
-            maxPoolSize : 10,
-        }
-        
-        cached.promise = mongoose.connect(MONGODB_URI,opts).then(()=>mongoose.connection);
-    }
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then(() => mongoose.connection);
+  }
 
-    try {
-        cached.conn = await cached.promise;
-    } catch (error) {
-        cached.promise=null;
-        throw error;
-    }
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    cached.promise = null;
+    throw err;
+  }
 
-    return cached.conn;
+  return cached.conn;
 }

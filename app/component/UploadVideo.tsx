@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Video, Upload, X } from "lucide-react";
+import { useState } from "react";
+import { Video } from "lucide-react";
 import FileUpload from "./FileUpload"; // Adjust the path as needed
 import axios from "axios";
 import { useRouter } from "next/navigation";

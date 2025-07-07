@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 
 export const POST = asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
-
+    await DBConnect();
     const session = await getServerSession(authOptions);
 
     if(!session)

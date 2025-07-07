@@ -1,6 +1,4 @@
 import Comment from "@/models/Comment.model";
-import mongoose from "mongoose";
-import Video from "@/models/Video";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { NextRequest, NextResponse } from "next/server";
 import { nextError, nextResponse } from "@/utils/Response";
@@ -10,7 +8,7 @@ import { DBConnect } from "@/lib/db";
 
 
 
-export const POST = async (req: NextRequest):Promise<NextResponse> => {
+export const POST =asyncHandler( async (req: NextRequest):Promise<NextResponse> => {
   await DBConnect();
    const session = await getServerSession(authOptions);
   
@@ -31,4 +29,5 @@ export const POST = async (req: NextRequest):Promise<NextResponse> => {
   });
 
   return nextResponse(200,"Reply added",reply);
-};
+}
+)
