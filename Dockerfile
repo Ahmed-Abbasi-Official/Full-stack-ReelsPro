@@ -3,7 +3,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY server/ ./server
-COPY models/ ./models
+# COPY models/ ./models
 
 WORKDIR /app/server
 
