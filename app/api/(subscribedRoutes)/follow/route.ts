@@ -15,7 +15,8 @@ export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse>
         return nextError(401, "Please Login First!");
     };
 
-    const { channelId, isSubs } = await req.json();
+    const { channelId, isSub } = await req.json();
+    console.log(isSub)
 
     if (!channelId) {
         return nextError(400, "Missing required fields")
@@ -26,7 +27,7 @@ export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse>
         return nextError(400,"You can subscribed yourself!");
     };
 
-    if (isSubs) {
+    if (isSub) {
         await Subscription.create({
             channel: new mongoose.Types.ObjectId(channelId),
             subscriber: session?.user._id,

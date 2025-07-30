@@ -2,16 +2,22 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "seed": "node app/api/seed.ts",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "worker": "cross-env NODE_OPTIONS=--loader=ts-node/esm node workers/message.worker.ts"
   },
   "dependencies": {
     "@imagekit/next": "^2.1.2",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "ioredis": "^5.6.1",
     "lucide-react": "^0.525.0",
     "mongoose": "^8.16.0",
     "next": "15.3.4",
@@ -21,18 +27,23 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.59.0",
     "react-hot-toast": "^2.5.2",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "zod": "^3.25.67"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/dotenv": "^6.1.1",
+    "@types/node": "^20.19.9",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }

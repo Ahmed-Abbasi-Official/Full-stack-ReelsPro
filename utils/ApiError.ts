@@ -26,6 +26,3 @@ class ApiError extends Error {
 }
 
 export { ApiError };
-// https://javgg.net/jav/hmn-439-english-subtitle-aaa8/
-// https://javgg.net/jav/jufe-532-aaa8/
-// https://javgg.net/jav/hmn-507-aaa9/

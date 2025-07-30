@@ -60,14 +60,14 @@ export async function GET(req: NextRequest) {
         ? [
             {
               $lookup: {
-                from: "subscribes",
+                from: "subscriptions",
                 let: { videoOwner: "$user" },
                 pipeline: [
                   {
                     $match: {
                       $expr: {
                         $and: [
-                          { $eq: ["$subscribedTo", "$$videoOwner"] },
+                          { $eq: ["$channel", "$$videoOwner"] },
                           { $eq: ["$subscriber", new mongoose.Types.ObjectId(loggedInUserId)] }
                         ]
                       }

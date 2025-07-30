@@ -1,4 +1,6 @@
 import mongoose, { Connection } from "mongoose";
+import dotenv from 'dotenv';
+dotenv.config(); // Add this before any other imports
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -20,7 +22,7 @@ if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
-export async function DBConnect() {
+export const DBConnect = async()=> {
   if (cached.conn) {
     return cached.conn;
   }

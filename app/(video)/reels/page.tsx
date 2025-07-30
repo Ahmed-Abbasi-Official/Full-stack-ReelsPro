@@ -181,7 +181,7 @@ export default function ReelComponent() {
       setComments([newComment, ...comments])
       setCommentText("")
      const res =  await axios.post('/api/comment',newComment);
-     console.log("Create Comment" , res);
+    //  console.log("Create Comment" , res);
     }
   }
 
@@ -195,24 +195,26 @@ export default function ReelComponent() {
       parentCommentId
     });
 
-    console.log("Reply : ",res)
+    // console.log("Reply : ",res)
 
     
 
   }
 
   const handleFollow = async()=>{
-      await axios.post(`/api/follow`,{
+    // console.log(isSub)
+    const res =   await axios.post(`/api/follow`,{
         isSub,
         channelId:reels[counter]?.user
       })
+      console.log(res)
     }
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
   }
 
-  console.log("reels : ",comments)
+  // console.log("reels : ",comments)
 
   
 
