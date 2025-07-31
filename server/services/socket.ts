@@ -6,12 +6,13 @@ import { Message } from "../Message.models.ts";
 import { DBConnect } from '../db.ts' ;
 import dotenv from 'dotenv';
 dotenv.config(); // Add this before any other imports
+// const serverName = process.env.SERVER_ID! 
 
 
 const pub = new Redis({
-  host: "redis-13764.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
-  port: 13764,
-  password: "DuqkNLY9Jg4ZmWR9aLDZrKlpusoOn33u",
+  host:process.env.REDIS_HOST || "redis-13764.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
+  port:Number(process.env.PORT) || 13764,
+  password:process.env.PASSWORD,
 });
 const sub = pub.duplicate();
 
@@ -42,7 +43,6 @@ class SocketService {
     // console.log(serverName)
     console.log("Initializing socket service");
     DBConnect().catch(err => console.error("DB connection error:", err));
-
 
     this._io = new Server({
       adapter: createAdapter(pub, sub),
@@ -88,7 +88,7 @@ class SocketService {
         };
 
         io.to(toUserId).emit("message", payload);
-        console.log(payload)
+        console.log({...payload,serverName})
 
         try {
           await DBConnect();

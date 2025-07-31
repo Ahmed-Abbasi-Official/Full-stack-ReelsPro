@@ -5,6 +5,8 @@ import SocketService from "./services/socket.ts"; // TS with "moduleResolution":
 import dotenv from 'dotenv';
 dotenv.config();
 
+const serverName = process.env.SERVER_ID! 
+
 const init = () => {
   console.log("first")
   const app = express();
@@ -19,7 +21,7 @@ const init = () => {
   });
 
   server.listen(8000, () => {
-    console.log("Server running at http://localhost:8000");
+    console.log(`Server ${serverName} running at http://localhost:8000`);
   });
 };
 
