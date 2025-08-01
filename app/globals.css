@@ -3,19 +3,55 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* --color-primary-50: oklch(0.962 0.018 272.314);
+  --color-primary-100: oklch(0.93 0.034 272.788);
+  --color-primary-200: oklch(0.87 0.065 274.039);
+  --color-primary-300: oklch(0.785 0.115 274.713);
+  --color-primary-400: oklch(0.673 0.182 276.935);
+  --color-primary-500: oklch(0.585 0.233 277.117);
+  --color-primary-600: oklch(0.511 0.262 276.966);
+  --color-primary-700: oklch(0.457 0.24 277.023);
+  --color-primary-800: oklch(0.398 0.195 277.366);
+  --color-primary-900: oklch(0.359 0.144 278.697);
+  --color-primary-950: oklch(0.257 0.09 281.288); */
+
+  --color-primary-50: oklch(0.957 0.026 248.5);
+  --color-primary-100: oklch(0.915 0.045 243.2);
+  --color-primary-200: oklch(0.835 0.075 238.7);
+  --color-primary-300: oklch(0.725 0.115 235.8);
+  --color-primary-400: oklch(0.62 0.145 233.9);
+  --color-primary-500: oklch(0.515 0.155 232.5);
+  --color-primary-600: oklch(0.425 0.145 231.8);
+  --color-primary-700: oklch(0.345 0.125 231.2);
+  --color-primary-800: oklch(0.275 0.1 230.5);
+  --color-primary-900: oklch(0.215 0.075 229.8);
+  --color-primary-950: oklch(0.135 0.045 228.5);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primaryColor);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-primary-50: var(--color-primary-50);
+  --color-primary-100: var(--color-primary-100);
+  --color-primary-200: var(--color-primary-200);
+  --color-primary-300: var(--color-primary-300);
+  --color-primary-400: var(--color-primary-400);
+  --color-primary-500: var(--color-primary-500);
+  --color-primary-600: var(--color-primary-600);
+  --color-primary-700: var(--color-primary-700);
+  --color-primary-800: var(--color-primary-800);
+  --color-primary-900: var(--color-primary-900);
+  --color-primary-950: var(--color-primary-950);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ededed;
+    --foreground: #171717;
   }
 }
 
@@ -23,4 +59,46 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .card-body {
+    @apply p-5;
+  }
+
+  .card {
+    @apply dark:bg-black/90 bg-primary-50 rounded-lg shadow-lg hover:bg-primary-100 hover:dark:bg-primary-950;
+  }
+
+  .card-title {
+    @apply text-2xl font-bold mb-2;
+  }
+
+  .card-actions {
+    @apply flex justify-end;
+  }
+
+  .stat-value {
+    @apply text-3xl font-bold text-primary-600;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 cursor-pointer py-1.5 px-4 rounded my-2;
+  }
+
+  .alert {
+    @apply p-4 mb-4 text-sm text-primary-700 bg-primary-100 rounded-lg dark:bg-primary-200 dark:text-primary-800;
+  }
+
+  .avatar {
+    @apply rounded-full flex justify-center items-center bg-primary-500;
+  }
+
+  .modal {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm;
+  }
+
+  .input {
+    @apply bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500;
+  }
 }

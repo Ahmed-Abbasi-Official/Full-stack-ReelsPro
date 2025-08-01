@@ -3,16 +3,16 @@ import { Server, Socket } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Redis } from "ioredis";
 import { Message } from "../Message.models.ts";
-import { DBConnect } from '../db.ts' ;
+import { DBConnect } from '../db.ts';
 import dotenv from 'dotenv';
 dotenv.config(); // Add this before any other imports
 // const serverName = process.env.SERVER_ID! 
 
 
 const pub = new Redis({
-  host:process.env.REDIS_HOST || "redis-13764.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
-  port:Number(process.env.PORT) || 13764,
-  password:process.env.PASSWORD,
+  host: process.env.REDIS_HOST || "redis-13764.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
+  port: Number(process.env.PORT) || 13764,
+  password: process.env.PASSWORD,
 });
 const sub = pub.duplicate();
 
@@ -68,6 +68,18 @@ class SocketService {
         this._io.emit("user-online", userId); // Broadcast to all
       });
 
+      socket.on("event:delete", async ({ messageId }: any) => {
+        socket.emit("event:deleted", { messageId });
+        try {
+          await DBConnect();
+          await Message.deleteOne({ _id: messageId });
+          console.log(`Message with ID ${messageId} deleted.`);
+        } catch (error: any) {
+          console.error("Message delete failed:", error.message);
+        }
+      });
+
+
       // socket.on("event:logout", ({ userId }) => {
       //   onlineUsers.delete(userId);
       //   io.emit("user-offline", userId);
@@ -88,7 +100,7 @@ class SocketService {
         };
 
         io.to(toUserId).emit("message", payload);
-        console.log({...payload,serverName})
+        console.log({ ...payload, serverName })
 
         try {
           await DBConnect();

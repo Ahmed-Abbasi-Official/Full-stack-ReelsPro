@@ -382,6 +382,7 @@ useEffect(() => {
                   }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.message}</p>
+                <span className="cursor-pointer">X</span>
               </div>
 
             </div>
