@@ -223,13 +223,6 @@ export default function ReelComponent() {
      
       {/* Video/Content Area */}
       <div className="relative h-full">
-        {/* Placeholder for video */}
-        {/* <div className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-6xl mb-4">🎬</div>
-            <p className="text-lg opacity-80">Video Content Here</p>
-          </div>
-        </div> */}
 
         
 

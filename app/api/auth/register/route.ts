@@ -6,6 +6,8 @@ import { ApiError } from "@/utils/ApiError";
 import { usernameValidation } from "@/schemas/registerSchema";
 import { nextError, nextResponse } from "@/utils/Response";
 import { sendVerificationCode } from "@/lib/mailer/nodemailer";
+export const runtime = 'nodejs';
+
 
 export async function POST(request: NextRequest) {
 
@@ -57,8 +59,10 @@ export async function POST(request: NextRequest) {
                 existingEmail.password = password;
                 existingEmail.markModified('password');
                 existingEmail.code = code;
+                profilePic ;
                 existingEmail.codeExpiry = new Date(Date.now() + 60000); // 60 seconds
                 await existingEmail.save();
+                // console.log(existingEmail)
             }
 
 
@@ -75,11 +79,12 @@ export async function POST(request: NextRequest) {
                 password,
                 code,
                 codeExpiry,
-                profilePic:profilePic || "",
+                profilePic: profilePic,
                 isVerified: false
             })
 
             await newUser.save();
+            // console.log(newUser)
         }
 
 

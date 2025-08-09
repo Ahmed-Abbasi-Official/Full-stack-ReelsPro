@@ -24,7 +24,7 @@ export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse>
 
     if(channelId === session?.user?._id)
     {
-        return nextError(400,"You can subscribed yourself!");
+        return nextError(400,"You can not subscribed yourself!");
     };
 
     if (isSub) {

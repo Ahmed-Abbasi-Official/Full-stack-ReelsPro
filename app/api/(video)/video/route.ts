@@ -58,44 +58,57 @@ export async function GET(req: NextRequest) {
       },
       ...(loggedInUserId
         ? [
-            {
-              $lookup: {
-                from: "subscriptions",
-                let: { videoOwner: "$user" },
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: {
-                        $and: [
-                          { $eq: ["$channel", "$$videoOwner"] },
-                          { $eq: ["$subscriber", new mongoose.Types.ObjectId(loggedInUserId)] }
-                        ]
-                      }
+          {
+            $lookup: {
+              from: "subscriptions",
+              let: { videoOwner: "$user" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$channel", "$$videoOwner"] },
+                        { $eq: ["$subscriber", new mongoose.Types.ObjectId(loggedInUserId)] }
+                      ]
                     }
                   }
-                ],
-                as: "subscriptionInfo"
+                }
+              ],
+              as: "subscriptionInfo"
+            }
+          },
+          {
+            $addFields: {
+              isSubscribed: {
+                $cond: {
+                  if: { $gt: [{ $size: "$subscriptionInfo" }, 0] },
+                  then: true,
+                  else: false
+                }
+              },
+              isLiked:{
+                $in:
+                [
+                 { $toString:session?.user?._id},
+                  {
+                    $map:{
+                      input:"$LikedUserInfo",
+                      as:"o",
+                      in:{$toString:"$$o._id"}
+                    }
+                  }
+                ]
               }
             },
-            {
-              $addFields: {
-                isSubscribed: {
-                  $cond: {
-                    if: { $gt: [{ $size: "$subscriptionInfo" }, 0] },
-                    then: true,
-                    else: false
-                  }
-                }
-              }
-            }
-          ]
+          },
+        ]
         : [
-            {
-              $addFields: {
-                isSubscribed: false
-              }
+          {
+            $addFields: {
+              isSubscribed: false
             }
-          ]),
+          }
+        ]),
       {
         $project: {
           owner: {
@@ -114,6 +127,7 @@ export async function GET(req: NextRequest) {
               as: "o",
               in: {
                 username: "$$o.username",
+                _id: "$$o._id",
                 profilePic: "$$o.profilePic"
               }
             }
@@ -121,10 +135,13 @@ export async function GET(req: NextRequest) {
           videoUrl: 1,
           views: 1,
           likes: 1,
+          description: 1,
           user: 1,
-          isSubscribed: 1
+          title: 1,
+          isSubscribed: 1,
+          isLiked:1
         }
-      }
+      },
     ]);
 
     return NextResponse.json(

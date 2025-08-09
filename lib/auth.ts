@@ -1,5 +1,3 @@
-// lib/authOptions.ts (or wherever you keep this config)
-
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -37,14 +35,14 @@ export const authOptions: NextAuthOptions = {
           if (!user) throw new Error("No User Found!");
           if (!user.isVerified) throw new Error("Please verify your account first");
 
-          // const isPasswordCorrect = await bcrypt.compare(
-          //   credentials.password,
-          //   user.password
-          // );
+          const isPasswordCorrect = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
 
-          console.log("userPass : ",user.password , "Cre : ",credentials.password)
+          // console.log("userPass : ",user.password , "Cre : ",credentials.password)
 
-          // if (!isPasswordCorrect) throw new Error("Incorrect Password");
+          if (!isPasswordCorrect) throw new Error("Incorrect Password");
 
           return user;
         } catch (error: any) {
@@ -76,7 +74,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signIn: "/sign-in",
+    signIn: "/login",
   },
 
   session: {

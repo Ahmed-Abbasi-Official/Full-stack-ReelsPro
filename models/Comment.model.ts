@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IComment   {
   comment: string;
-  username: string;
+  user: mongoose.Types.ObjectId;
   videoId: mongoose.Types.ObjectId;
   parentCommentId?: mongoose.Types.ObjectId;
   createdAt?: Date;
@@ -15,8 +15,9 @@ const commentSchema = new Schema<IComment>(
       type: String,
       required: [true, "comment must be required"],
     },
-    username: {
-      type: String,
+    user: {
+      type: Schema.Types.ObjectId,
+      ref:"User",
       required: true,
       index: true,
     },

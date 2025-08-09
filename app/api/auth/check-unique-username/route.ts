@@ -30,6 +30,9 @@ export const POST = asyncHandler(async(req:NextRequest):Promise<NextResponse>=>{
 
     if(existingUsername)
     {
+        if(!existingUsername?.isVerified) {
+             return nextResponse(200,"username is unique");
+        }
         return nextError(409,"username already exist")
     }
 

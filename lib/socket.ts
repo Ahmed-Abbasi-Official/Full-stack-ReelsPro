@@ -4,7 +4,7 @@ let socket: Socket;
 
 export const getSocket = (): Socket => {
   if (!socket) {
-    socket = io("http://localhost:8000", {
+    socket = io(process.env.NEXT_PUBLIC_SOCKET_API_URL! || "http://localhost:8000", {
       transports: ["websocket"], // Optional: force websocket over polling
     });
   }

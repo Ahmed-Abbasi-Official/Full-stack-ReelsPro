@@ -9,7 +9,6 @@ export const usernameValidation = z.object({
 });
 
 export const registerSchema = z.object({
-    usernameValidation,
     email:z.string().email({message:"Invalid Email Address"}),
     password:z.string().min(6,"Password must be atleast 6 characters")
 })

@@ -1,12 +1,12 @@
-export const buildCommentTree = (comments:any) => {
+export const buildCommentTree = (comments: any) => {
   const map = new Map<string, any>();
   const roots: any[] = [];
 
-  comments.forEach((c:any) => {
+  comments.forEach((c: any) => {
     map.set(c._id.toString(), { ...c.toObject(), children: [] });
   });
 
-  comments.forEach((c:any) => {
+  comments.forEach((c: any) => {
     if (c.parentCommentId) {
       const parent = map.get(c.parentCommentId.toString());
       if (parent) {
@@ -30,95 +30,92 @@ import { authOptions } from "@/lib/auth";
 import { DBConnect } from "@/lib/db";
 
 export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
-    await DBConnect();
-    const { searchParams } = new URL(req.url);
+  await DBConnect();
+  const { searchParams } = new URL(req.url);
 
-    const id = searchParams.get("videoId");
-    console.log("id of comment",id)
+  const id = searchParams.get("videoId");
+  // console.log("id of comment",id)
 
 
-    if (!id) {
-        return nextError(400, "reuired fields missing");
-    };
+  if (!id) {
+    return nextError(400, "reuired fields missing");
+  };
 
-    const videoId = new mongoose.Types.ObjectId(id);
-    if(!videoId){
-      return nextError(400,"VideoId is Missing");
-    };
+  const videoId = new mongoose.Types.ObjectId(id);
+  if (!videoId) {
+    return nextError(400, "VideoId is Missing");
+  };
 
-    const comments = await Comment.find({ videoId }).sort({ createdAt: -1 });
-    console.log("comments",comments)
+  const comments = await Comment.find({ videoId }).sort({ createdAt: -1 }).populate('user',"username profilePic");
+  // console.log("comments",comments)
 
-    if (!comments) {
-        return nextError(400, "Error in getting Comments");
-    }
+  if (!comments) {
+    return nextError(400, "Error in getting Comments");
+  }
 
-    
+
   const tree = buildCommentTree(comments);
 
-    return nextResponse(200, "Comment Fetched Successfully!", tree);
+  return nextResponse(200, "Comment Fetched Successfully!", tree);
 
 })
 
 
-export const POST = asyncHandler(async (req:NextRequest): Promise<NextResponse> => {
+export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
 
-    const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
 
-    if (!session) {
-        return nextError(401, "Please Login first!")
-    }
+  if (!session) {
+    return nextError(401, "Please Login first!")
+  }
 
-    await DBConnect();
+  await DBConnect();
 
-    const { videoId, comment } = await req.json();
+  const { videoId, comment } = await req.json();
 
-    console.log(videoId, comment)
+  // console.log(videoId, comment)
 
-    if (!videoId || !comment) {
-        return nextError(400, "Missing required fields!");
-    };
+  if (!videoId || !comment) {
+    return nextError(400, "Missing required fields!");
+  };
 
-    // const videoId = new mongoose.Types.ObjectId(id);
-    // console.log(session?.user)
+  // const videoId = new mongoose.Types.ObjectId(id);
+  // console.log(session?.user)
 
-    const username = session?.user?.username;
-    console.log(username)
+  const userId = session?.user?._id;
 
-    const createComment =  new  Comment({
-        comment,
-        username,
-        videoId: new mongoose.Types.ObjectId(videoId), // ✅ convert to ObjectId
-        parentCommentId: null,
-    });
+  const createComment = new Comment({
+    comment,
+    user: userId,
+    videoId: new mongoose.Types.ObjectId(videoId),
+    parentCommentId: null,
+  });
 
-    await createComment.save();
+  await createComment.save();
 
-    if (!createComment) {
-        return nextError(400, "Error in creating comment");
-    };
+  if (!createComment) {
+    return nextError(400, "Error in creating comment");
+  };
 
-
-    return nextResponse(200, "Comment Create Successfully!", createComment);
+  return nextResponse(200, "Comment Create Successfully!", createComment);
 
 })
 
 export const DELETE = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
 
-  const {searchParams} = new URL(req.url);
+  const { commentId } = await req.json();
+  console.log(commentId)
 
-  const commentId = searchParams.get("commentId");
-
-  if(!commentId){
-    return nextError(400,"Missing required fields!");
+  if (!commentId) {
+    return nextError(400, "Missing required fields!");
   };
 
   const deleteComment = await Comment.findByIdAndDelete(commentId);
 
-  if(!deleteComment){
-    return nextError(400,"Error in deleteing Comment");
+  if (!deleteComment) {
+    return nextError(400, "Error in deleteing Comment");
   };
 
-    return nextResponse(200, "Comment Delete Successfully!");
-    
+  return nextResponse(200, "Comment Delete Successfully!");
+
 })

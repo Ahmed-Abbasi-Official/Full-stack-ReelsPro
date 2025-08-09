@@ -14,7 +14,7 @@ export const POST = asyncHandler(async (req: NextRequest): Promise<NextResponse>
   if (!session) return nextError(401, "Please login first");
 
   const { isLiked, videoId:id } = await req.json();
-  console.log(isLiked)
+  console.log(isLiked,id)
 
   if (typeof isLiked !== "boolean" || !id) {
     return nextError(400, "Missing required fields");

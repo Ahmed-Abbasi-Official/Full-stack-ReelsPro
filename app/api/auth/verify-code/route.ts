@@ -13,7 +13,6 @@ export const POST = asyncHandler(async(req):Promise<NextResponse>=>{
         return nextError(400,"Guve me a code");
     };
 
-    console.log(code)
 
     await DBConnect();
 
@@ -24,9 +23,7 @@ export const POST = asyncHandler(async(req):Promise<NextResponse>=>{
     }
 
   const isValid =   user.code == code;
-  console.log(user.code)
 
-  console.log(isValid)
 
   const notExpiryCode = new Date(user.codeExpiry) > new Date() ;
 
