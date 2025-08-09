@@ -76,7 +76,6 @@
 
 import { useEffect, useState } from "react"
 import { Home, Video, Bell, MessageCircle, Plus, User, Menu, X, LogOut, ListVideo } from "lucide-react"
-import HomeTab from "@/components/HomeTab"
 import VideosTab from "@/components/VideosTab"
 import NotificationsTab from "@/components/NotificationsTab"
 import MessagesTab from "@/components/MessagesTab"
