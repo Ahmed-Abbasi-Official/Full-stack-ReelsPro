@@ -17,7 +17,7 @@ export const GET = asyncHandler(async (): Promise<NextResponse> => {
     }
 
     const userId = session.user._id;
-    console.log("userId",userId)
+    // console.log("userId",userId)
 
     const user = await User.aggregate([
   { $match: { _id: new mongoose.Types.ObjectId(userId) } },
@@ -120,6 +120,7 @@ export const GET = asyncHandler(async (): Promise<NextResponse> => {
   {
     $project: {
       username: 1,
+      profilePic:1,
       email: 1,
       subscribers: 1,
       subscribedTo: 1,
@@ -132,12 +133,12 @@ export const GET = asyncHandler(async (): Promise<NextResponse> => {
   }
 ]);
 
-console.log("user",user)
+// console.log("user",user)
 
 
     if (!user || user.length === 0) {
         return nextError(400, "User not Found!");
     }
 
-    return nextResponse(200, "User Fetched Successfully", user[0]);
+    return nextResponse(200, "User Fetched Successfully", user);
 });

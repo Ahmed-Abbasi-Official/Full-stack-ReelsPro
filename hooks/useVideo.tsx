@@ -10,6 +10,8 @@ interface VideoContextType {
     creatingPlaylist: UseMutationResult<any, Error, void, unknown>
     saveToggle: UseMutationResult<any, Error, void, unknown>
     follow: UseMutationResult<any, Error, void, unknown>
+    getSingleUsers: UseMutationResult<any, Error, void, unknown>
+    getSingleVideo: UseMutationResult<any, Error, string, unknown>
 }
 
 
@@ -146,10 +148,35 @@ export const VideoProvider = ({ children }: { children: ReactNode }) => {
         }
     )
 
+    //* GET-SINGLE-USER-PROFILE :
+
+    const getSingleUsers = useMutation(
+        {
+            mutationFn:async(userId)=>{
+                const res = await axios.get(`/api/user-profile-videos?_id=${userId}`) 
+                // console.log(res)
+                return res?.data;
+            }
+        }
+    )
+
+    //* GET SINGLE VIDEO:
+
+    const getSingleVideo=useMutation(
+        {
+            mutationFn:async(videoId:any)=>{
+                console.log(videoId)
+                const res = await axios.get(`/api/get-single-video?videoId=${videoId}`)
+                console.log(res)
+                return res?.data;
+            }
+        }
+    )
+
     
     
     return (
-        <VideoContext.Provider value={{ getAllVideos , likeToggle, sendComment, deleteComment, creatingPlaylist, saveToggle, follow  }}>
+        <VideoContext.Provider value={{ getAllVideos , likeToggle, sendComment, deleteComment, creatingPlaylist, saveToggle, follow, getSingleUsers, getSingleVideo  }}>
             {children}
         </VideoContext.Provider>
     )

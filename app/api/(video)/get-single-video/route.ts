@@ -4,8 +4,12 @@ import { ApiResponse } from "@/utils/ApiResponse";
 import { nextError } from "@/utils/Response";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
+    const session = await getServerSession(authOptions);
+    const loggedInUserId = session?.user?._id;
     await DBConnect();
     try {
 
@@ -38,6 +42,15 @@ export async function GET(req: NextRequest) {
                 }
             },
             {
+                $lookup:
+                {
+                    from: "comments",
+                    localField: "_id",
+                    foreignField: "videoId",
+                    as: "TComments"
+                }
+            },
+            {
                 $addFields: {
                     likes: { $size: { $ifNull: ["$likedUserDocs", []] } },
                     likedUserIds: {
@@ -46,7 +59,8 @@ export async function GET(req: NextRequest) {
                             as: "like",
                             in: "$$like.user"
                         }
-                    }
+                    },
+                    
                 }
             },
             {
@@ -58,6 +72,25 @@ export async function GET(req: NextRequest) {
                 }
             },
             {
+                $lookup: {
+                    from: "subscriptions",
+                    let: { videoOwner: "$user" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$channel", "$$videoOwner"] },
+                                        { $eq: ["$subscriber", new mongoose.Types.ObjectId(loggedInUserId)] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: "subscriptionInfo"
+                }
+            },
+            {
                 $project: {
                     owner: {
                         $map: {
@@ -65,6 +98,7 @@ export async function GET(req: NextRequest) {
                             as: "o",
                             in: {
                                 username: "$$o.username",
+                                _id: "$$o._id",
                                 profilePic: "$$o.profilePic"
                             }
                         }
@@ -79,9 +113,33 @@ export async function GET(req: NextRequest) {
                             }
                         }
                     },
+                    TotalComment: { $size: "$TComments" },
                     videoUrl: 1,
                     views: 1,
-                    likes: 1
+                    likes: 1,
+                    title: 1,
+                    description: 1,
+                    user: 1,
+                    // isLiked: 1,
+                    isSubscribed: {
+                        $cond: {
+                            if: { $gt: [{ $size: "$subscriptionInfo" }, 0] },
+                            then: true,
+                            else: false
+                        }
+                    },
+                    isLiked: {
+                        $in: [
+                            { $toString: loggedInUserId },
+                            {
+                                $map: {
+                                    input: { $ifNull: ["$LikedUserInfo", []] },
+                                    as: "o",
+                                    in: { $toString: "$$o._id" }
+                                }
+                            }
+                        ]
+                    }
                 }
             }
         ]);

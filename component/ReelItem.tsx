@@ -11,6 +11,7 @@ import { AxiosError } from "axios"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import PlaylistModal from "./PlaylistModal"
+import Link from "next/link"
 
 const formatNumber = (num: number): string => {
   if (typeof num !== 'number') return "0"
@@ -24,6 +25,7 @@ const formatNumber = (num: number): string => {
 }
 
 export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) => {
+  console.log(reel)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [isLiked, setIsLiked] = useState(reel.isLiked)
@@ -38,6 +40,7 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
   const { likeToggle, follow } = useVideo();
 
   const router = useRouter();
+  
 
 
 
@@ -189,16 +192,26 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
             <div className="flex-1 mr-4">
               {/* User Info */}
               <div className="flex items-center mb-3">
-                <Image
-                  urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
-                  src={reel.owner[0].profilePic}
-                  width={500}
-                  height={500}
-                  alt="Picture of the author"
-                  className="w-10 h-10 rounded-full mr-3 border border-purple-500"
-                />
+                <Link
+                  href={`/?section=single-video&userId=${reel?.owner[0]?._id}&username=${reel?.owner[0]?.username}`}
+                >
+
+                  <Image
+                    urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
+                    src={reel.owner[0].profilePic}
+                    width={500}
+                    height={500}
+                    alt="Picture of the author"
+                    className="w-10 h-10 rounded-full mr-3 border border-purple-500"
+                  />
+                </Link>
                 <div className="flex items-center">
+                     <Link
+                  href={`/?section=single-video&userId=${reel?.owner[0]?._id}&username=${reel?.owner[0]?.username}`}
+                >
+
                   <span className="text-white font-bold text-base sm:text-lg">@{reel.owner[0].username}</span>
+                </Link>
                   {/* {reel.user && (
                     <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center ml-1">
                       <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -236,7 +249,7 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
                 <div className="bg-white/20 rounded-full p-2 sm:p-3 group-hover:bg-white/30 transition-colors">
                   <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
-                <span className="text-white text-xs sm:text-sm font-medium mt-1">{formatNumber(reel.comments)}</span>
+                <span className="text-white text-xs sm:text-sm font-medium mt-1">{formatNumber(reel.TotalComment)}</span>
               </button>
               {/* Share */}
               <button className="flex flex-col items-center group">
@@ -292,5 +305,3 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
     </>
   )
 }
-
-

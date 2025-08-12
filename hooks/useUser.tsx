@@ -1,5 +1,5 @@
 // UserContext.tsx
-import { useMutation, UseMutationResult } from "@tanstack/react-query";
+import { useMutation, UseMutationResult, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
@@ -22,6 +22,21 @@ interface IUser {
 interface IUserContext {
   user: IUser | null;
   loading: boolean;
+}
+
+  //* PROFILE :
+
+export const getUser = ()=>{
+  const user = useQuery(
+    {
+      queryKey:["user"],
+      queryFn:async()=>{
+        const res = await axios.get('/api/profile');
+        return res?.data;
+      }
+    }
+  )
+  return {user};
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -64,13 +79,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }
     )
 
-    // const { data: session, status } = useSession();
-      
-      // Memoize the context value to prevent unnecessary re-renders
+    //* Memoize the context value to prevent unnecessary re-renders
+
       const contextValue = useMemo<IUserContext>(() => ({
         user: session?.user ?? null,
         loading: status === 'loading',
       }), [session?.user, status]);
+
 
     return (
         <UserContext.Provider value={{ signUpUser, userUnique, verifyOtp,...contextValue }}>

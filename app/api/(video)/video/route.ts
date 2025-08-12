@@ -37,6 +37,15 @@ export async function GET(req: NextRequest) {
         }
       },
       {
+        $lookup:
+        {
+          from: "comments",
+          localField: "_id",
+          foreignField: "videoId",
+          as: "TComments"
+        }
+      },
+      {
         $addFields: {
           likes: { $size: { $ifNull: ["$likedUserDocs", []] } },
           likedUserIds: {
@@ -46,7 +55,7 @@ export async function GET(req: NextRequest) {
               in: "$$like.user"
             }
           }
-        }
+        },
       },
       {
         $lookup: {
@@ -86,18 +95,18 @@ export async function GET(req: NextRequest) {
                   else: false
                 }
               },
-              isLiked:{
+              isLiked: {
                 $in:
-                [
-                 { $toString:session?.user?._id},
-                  {
-                    $map:{
-                      input:"$LikedUserInfo",
-                      as:"o",
-                      in:{$toString:"$$o._id"}
+                  [
+                    { $toString: session?.user?._id },
+                    {
+                      $map: {
+                        input: "$LikedUserInfo",
+                        as: "o",
+                        in: { $toString: "$$o._id" }
+                      }
                     }
-                  }
-                ]
+                  ]
               }
             },
           },
@@ -117,6 +126,7 @@ export async function GET(req: NextRequest) {
               as: "o",
               in: {
                 username: "$$o.username",
+                _id: "$$o._id",
                 profilePic: "$$o.profilePic"
               }
             }
@@ -132,6 +142,7 @@ export async function GET(req: NextRequest) {
               }
             }
           },
+           TotalComment:{$size:"$TComments"},
           videoUrl: 1,
           views: 1,
           likes: 1,
@@ -139,7 +150,8 @@ export async function GET(req: NextRequest) {
           user: 1,
           title: 1,
           isSubscribed: 1,
-          isLiked:1
+          isLiked: 1,
+          // totalComments: { $size: TComments }
         }
       },
     ]);

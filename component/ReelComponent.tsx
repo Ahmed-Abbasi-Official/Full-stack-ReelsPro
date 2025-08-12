@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { ReelItem } from "./ReelItem"
+import { ReelItem } from "./ReelItem" 
 import { useVideo } from "@/hooks/useVideo"
 import Loader from "./Loader"
 
@@ -9,14 +9,13 @@ import Loader from "./Loader"
 export default function ReelComponent() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
-  const {getAllVideos} = useVideo();4
+  const {getAllVideos} = useVideo();
   // if (!getAllVideos?.) return <Loader/>;
 
 
 
   useEffect(()=>{
     getAllVideos.mutate();
-    // console.log(getAllVideos.data)
   },[])
 
 
@@ -55,7 +54,7 @@ useEffect(() => {
       <Loader/>
     ) : (
       <>
-      <div className="relative w-[99%] sm:h-[calc(100vh-80px)] h-[calc(100vh-2px)]  flex justify-center items-center  ">
+      <div className="relative w-full sm:h-[calc(100vh-80px)] h-[calc(100vh-0px)]  flex md:justify-center justify-between items-center  ">
       <div
         ref={containerRef}
         className="md:max-w-[27rem]   shadow-white shadow-sm sm:rounded-lg h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
@@ -73,7 +72,7 @@ useEffect(() => {
         )))}
       </div>
       {/* Scroll Indicators */}
-      <div className="absolute right-4 top-1/2 transform  -translate-y-1/2 flex flex-col space-y-2 z-20">
+      <div className="absolute  hidden right-4 top-1/2 transform   -translate-y-1/2 sm:flex flex-col space-y-2 z-20">
         {getAllVideos?.data?.data?.length > 0 && (getAllVideos?.data.data.map((_: any, index: any) => (
           <div
             key={index}
@@ -87,7 +86,3 @@ useEffect(() => {
     </>
   )
 }
-
-
-
-
