@@ -17,7 +17,7 @@ interface UserProfilePageProps {
   }
 }
 
-export default function UserProfilePage({ a }:any) {
+export default function UserProfilePage() {
   let username:any  = ""
   const [isFollowing, setIsFollowing] = useState(false) // State for follow button
   const {getSingleUsers} = useVideo();

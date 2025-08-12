@@ -25,7 +25,7 @@ const formatNumber = (num: number): string => {
 }
 
 export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) => {
-  console.log(reel)
+  // console.log(reel)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [isLiked, setIsLiked] = useState(reel.isLiked)

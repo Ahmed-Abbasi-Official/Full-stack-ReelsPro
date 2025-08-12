@@ -1,6 +1,7 @@
-import { useMutation, UseMutationResult, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, UseMutationResult, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import React, { createContext, ReactNode, useContext } from "react";
+import { toast } from "react-toastify";
 
 interface VideoContextType {
     getAllVideos: UseMutationResult<any, Error, void, unknown>
@@ -11,8 +12,31 @@ interface VideoContextType {
     saveToggle: UseMutationResult<any, Error, void, unknown>
     follow: UseMutationResult<any, Error, void, unknown>
     getSingleUsers: UseMutationResult<any, Error, void, unknown>
+    createVideo: UseMutationResult<any, Error, void, unknown>
     getSingleVideo: UseMutationResult<any, Error, string, unknown>
 }
+
+
+export function useVideos() {
+  const getAllVideos = useInfiniteQuery({
+    queryKey: ["videos"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await axios.get(`/api/video?page=${pageParam}&limit=5`);
+      return res.data; // includes { data: { videos: [], hasMore: true }, ... }
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      // 👇 Fix: Check inside lastPage.data
+      if (!lastPage?.data?.hasMore) return undefined;
+      return allPages.length + 1;
+    },
+  });
+
+  return {
+    getAllVideos,
+  };
+}
+
 
 
 //* GET COMMENT :
@@ -173,10 +197,21 @@ export const VideoProvider = ({ children }: { children: ReactNode }) => {
         }
     )
 
+    //* CREATE VIDEO :
+
+    const createVideo = useMutation(
+        {
+            mutationFn:async(data)=>{
+                const res = await axios.post('/api/video',data)
+                return res.data;
+            }
+        }
+    )
+
     
     
     return (
-        <VideoContext.Provider value={{ getAllVideos , likeToggle, sendComment, deleteComment, creatingPlaylist, saveToggle, follow, getSingleUsers, getSingleVideo  }}>
+        <VideoContext.Provider value={{ getAllVideos , likeToggle, sendComment, deleteComment, creatingPlaylist, saveToggle, follow, getSingleUsers, getSingleVideo, createVideo  }}>
             {children}
         </VideoContext.Provider>
     )

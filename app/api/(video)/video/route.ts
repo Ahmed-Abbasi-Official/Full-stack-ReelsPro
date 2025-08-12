@@ -17,9 +17,16 @@ export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const loggedInUserId = session?.user?._id;
 
+  const { searchParams } = new URL(req.url);
+  const page = parseInt(searchParams.get("page") || "1");
+  const limit = parseInt(searchParams.get("limit") || "5");
+  const skip = (page - 1) * limit;
+
   try {
     const videos = await Video.aggregate([
       { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
       {
         $lookup: {
           from: "users",
@@ -142,7 +149,7 @@ export async function GET(req: NextRequest) {
               }
             }
           },
-           TotalComment:{$size:"$TComments"},
+          TotalComment: { $size: "$TComments" },
           videoUrl: 1,
           views: 1,
           likes: 1,
@@ -156,10 +163,13 @@ export async function GET(req: NextRequest) {
       },
     ]);
 
-    return NextResponse.json(
-      new ApiResponse(200, "Fetched Videos Successfully", videos),
-      { status: 200 }
-    );
+    const totalVideos = await Video.countDocuments(); // or use estimatedDocumentCount()
+    const hasMore = skip + limit < totalVideos;
+
+    return NextResponse.json(new ApiResponse(200, "Fetched", {
+      videos,
+      hasMore
+    }));
   } catch (error) {
     return nextError(500, "Internal Server Error", error);
   }
@@ -181,7 +191,7 @@ export async function POST(req: NextRequest) {
 
     await DBConnect();
 
-    const body: IVideo = await req.json();
+    const body: any = await req.json();
 
 
     if (

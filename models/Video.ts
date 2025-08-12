@@ -43,21 +43,21 @@ const videoSchema = new Schema<IVideo>(
             type: Number,
             default:0
         },
-        isPublic: {
-            type: Boolean,
-            default: true
-        },
-        transformation: {
-            height: {
-                type: Number,
-                default: VIDEO_DIMENSIONS.height
+        // isPublic: {
+        //     type: Boolean,
+        //     default: true
+        // },
+        // transformation: {
+        //     height: {
+        //         type: Number,
+        //         default: VIDEO_DIMENSIONS.height
 
-            },
-            width: {
-                type: Number,
-                default: VIDEO_DIMENSIONS.width
-            },
-        },
+        //     },
+        //     width: {
+        //         type: Number,
+        //         default: VIDEO_DIMENSIONS.width
+        //     },
+        // },
         user: {
             type: Schema.Types.ObjectId,
             ref: "User"
