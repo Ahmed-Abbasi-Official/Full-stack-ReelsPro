@@ -92,6 +92,8 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
             $project: {
                 // subscriber: 1,
                 username: 1,
+                profilePic:1
+
                 // subscribedTo: 1,
             }
         }

@@ -17,7 +17,7 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
 
     const { searchParams } = new URL(req.url);
 
-    const username = searchParams.get("user");
+    const username = searchParams.get("username");
 
     if (!username) {
         return nextError(400, "Required Missing Fileds!");

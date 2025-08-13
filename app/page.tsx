@@ -9,6 +9,7 @@ import CreateTab from "@/component/CreateTab"
 import { useState } from "react"
 import { Play, Sparkles, TrendingUp, Upload, Users, Video } from "lucide-react"
 import CreateVideoModal from "@/component/CreateTab"
+import MessagesTab from "@/component/MessagesTab"
 
 export default function HomePage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -35,10 +36,11 @@ export default function HomePage() {
         )
       case "messages":
         return (
-          <div className="p-4">
-            <h2 className="text-2xl font-semibold text-gray-800">Messages</h2>
-            <p className="mt-2 text-gray-600">Check your messages here.</p>
-          </div>
+          // <div className="p-4">
+          //   <h2 className="text-2xl font-semibold text-gray-800">Messages</h2>
+          //   <p className="mt-2 text-gray-600">Check your messages here.</p>
+          // </div>
+          <MessagesTab/>
         )
       case "create":
          return (

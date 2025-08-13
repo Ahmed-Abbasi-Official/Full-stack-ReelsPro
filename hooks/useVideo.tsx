@@ -16,6 +16,7 @@ interface VideoContextType {
     getSingleVideo: UseMutationResult<any, Error, string, unknown>
 }
 
+//* GET ALL VIDEOS :
 
 export function useVideos() {
   const getAllVideos = useInfiniteQuery({

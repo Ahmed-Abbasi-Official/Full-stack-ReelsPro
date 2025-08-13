@@ -14,6 +14,7 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
     }
 
     const user = session?.user;
+    // console.log(user)
     await DBConnect();
 
     const leftSideBarUser = await Message.aggregate([
@@ -91,6 +92,7 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
             }
         }
     ]);
+    // console.log(leftSideBarUser)
 
     if (!leftSideBarUser) {
         return nextError(400, "Error in getting Users")
