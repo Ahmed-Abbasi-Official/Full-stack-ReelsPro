@@ -4,6 +4,7 @@ import { generateAvatar } from "./avatar";
 
 export const uploadGeneratedAvatar = async (username: string) => {
   const avatarFile = await generateAvatar(username);
+  // console.log(avatarFile)
 
   const authRes = await fetch("/api/imagekit-auth");
   const auth = await authRes.json();
@@ -20,6 +21,7 @@ export const uploadGeneratedAvatar = async (username: string) => {
     expire: auth.authenticationParameters.expire,
     token: auth.authenticationParameters.token,
   });
+  console.log(response)
 
   return response;
 };

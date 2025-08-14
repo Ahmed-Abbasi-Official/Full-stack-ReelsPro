@@ -31,7 +31,8 @@ interface RegisterEvent {
 }
 
 interface MessageEvent {
-  toUserId: string;
+  sender: string;
+  reciver: string;
   message: string;
 }
 
@@ -58,49 +59,41 @@ class SocketService {
     console.log("Socket listener running");
 
     io.on("connection", (socket: Socket) => {
-      console.log("Client connected:", socket.id);
+      const userId = socket.handshake?.query?.userId as string;
+      console.log(`Socket connected: ${socket.id} for user ${userId}`);
       console.log("Total clients:", io.engine.clientsCount);
 
-      // Triggered when user logs in (not just chat page)
+      if (userId && userId !== undefined) {
+        this.onlineUsers.add(userId)
+      }
 
-      socket.on("event:login", ({ userId }: { userId: string }) => {
-        this.onlineUsers.add(userId);
-        this._io.emit("user-online", userId); // Broadcast to all
-      });
+      console.log("Online users:", Array.from(this.onlineUsers));
 
-      socket.on("event:delete", async ({ messageId }: any) => {
-        socket.emit("event:deleted", { messageId });
-        try {
-          await DBConnect();
-          await Message.deleteOne({ _id: messageId });
-          console.log(`Message with ID ${messageId} deleted.`);
-        } catch (error: any) {
-          console.error("Message delete failed:", error.message);
+      //* TRIGGER WHEN USER IN COME ON YOUR WEB :
+
+      this._io.emit("getOnlineUser", Array.from(this.onlineUsers)); // Broadcast to all
+
+      socket.on("joinRoom", (chatId) => {
+        if (!socket.rooms.has(chatId)) {
+          socket.join(chatId);
         }
+        console.log(`Socket ${socket.id} joined room ${chatId}`);
       });
 
+      //* SEND MESSAGE :
 
-      // socket.on("event:logout", ({ userId }) => {
-      //   onlineUsers.delete(userId);
-      //   io.emit("user-offline", userId);
-      // });
-
-      socket.on("event:register", ({ userId }: RegisterEvent) => {
-        socket.join(userId);
-        socket.data.userId = userId;
-        console.log(`${userId} joined their room`);
-      });
-
-      socket.on("event:message", async ({ toUserId, message }: MessageEvent) => {
-        // console.log(toUserId)
+      socket.on("event:message", async (data) => {
+        // console.log(data)
+        const { sender, receiver, message } = data;
+        // console.log(data)
         const payload = {
-          sender: socket.data.userId,
-          receiver: toUserId,
+          sender:sender,
+          receiver: receiver,
           message,
         };
 
-        io.to(toUserId).emit("message", payload);
-        console.log({ ...payload, serverName })
+        io.to(receiver).emit("get:messages", data);
+        // console.log({ ...payload, serverName })
 
         try {
           await DBConnect();
@@ -109,6 +102,30 @@ class SocketService {
           console.error("Message DB save failed:", error.message);
         }
       });
+
+      //* DELETE MESSAGE :
+
+      socket.on("event:delete", async ({sender,messageId,reciever} : any) => {
+        // console.log(messageId)
+        socket.to(reciever).emit("event:deleted", { messageId });
+        try {
+          await DBConnect();
+          await Message.findOneAndDelete({ sender: sender });
+          console.log(`Message with ID ${messageId} deleted.`);
+        } catch (error: any) {
+          console.error("Message delete failed:", error.message);
+        }
+      });
+
+
+
+      // socket.on("event:logout", ({ userId }) => {
+      //   onlineUsers.delete(userId);
+      //   io.emit("user-offline", userId);
+      // });
+
+
+      
 
       socket.on("disconnect", () => {
         console.log("Client disconnected:", socket.id);

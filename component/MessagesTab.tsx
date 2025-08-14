@@ -2,17 +2,25 @@ import { ArrowLeft, Check, CheckCheck, ChevronDown, MessageCircleX, MessageSquar
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import FileUpload from "@/app/component/FileUpload";
-// import { asyncHandlerFront } from "@/utils/FrontAsyncHandler";
 import toast from "react-hot-toast";
-// import { apiClient } from "@/lib/api-client";
-// import { IChat } from "@/server/Models/Chat.models";
-import { useDebounceCallback } from "usehooks-ts";
 import { Image } from "@imagekit/next";
 import { useMessages } from "@/hooks/useMessages";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-// import { useSocket } from "@/app/context/SocketContext";
-// import { useUser } from "@/app/context/userContext";
+import { useSocket } from "@/hooks/useSocket";
+
+
+interface Message {
+    _id: string;
+    sender: string;
+    receiver: string;
+    message: string;
+    updatedAt: Date;
+    createdAt: Date;
+    isRead: boolean;
+    status: string;
+
+}
 
 
 const MessagesTab = () => {
@@ -30,15 +38,11 @@ const MessagesTab = () => {
 
     const [search, setSearch] = useState<string | null>('');
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    //   const debounced = useDebounceCallback((val: string) => {
-    //     setDebouncedSearch(val);
-    //   }, 500);
 
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<Map<string, Message>>(new Map());
     const [messageInput, setMessageInput] = useState("");
 
-    //   const { onlineUsers, socket } = useSocket();
-    //   const { user } = useUser();
+    const { onlineUsers, socket } = useSocket();
 
     const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
 
@@ -56,7 +60,10 @@ const MessagesTab = () => {
     //   const {userSearch} = UserSearching("a")
     //   const {userSearch} = UserSearching("username")
 
-    // console.log("onlineUsers:-",onlineUsers);
+    // useEffect(() => {
+    //     console.log("Online-Users : ", onlineUsers);
+    // });
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -97,59 +104,97 @@ const MessagesTab = () => {
     }
 
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        console.log(sideBarUsers)
+    //     console.log(sideBarUsers)
 
-    }, [])
+    // }, [])
     // console.log(activeUser)
 
 
     const getMessage = async () => {
-        const username: any = activeUser?.username
+        const username: any = activeUser?.username;
         getMessages.mutate(username, {
             onSuccess(data: any) {
-                console.log(data)
-                setMessages(data?.data)
-            }, onError(data: any) {
-                toast.error(data?.response.data.message)
-            }
+                console.log(data);
 
+                const messageArray = data?.data || [];
+                const messageMap: any = new Map(
+                    messageArray.map((msg: any) => [msg._id, msg])
+                );
+
+                setMessages(messageMap);
+            },
+            onError(data: any) {
+                toast.error(data?.response.data.message);
+            }
         });
-    }
+    };
+
 
     useEffect(() => {
         activeUser?.username && getMessage()
     }, [activeUser?.username])
 
-    // console.log(users);
 
     // 📤 Send message
     const handleSendMessage = () => {
+        // console.log("aya")
         if (!messageInput.trim() || !activeUser._id) return;
+        // console.log(first)
 
-        // const payload = {
-        //   sender: activeUser._id,
-        //   receiver:  user?._id,
-        //   message: messageInput,
-        // };
+        const data = {
+            sender: user?._id,
+            receiver: activeUser._id,
+            message: messageInput,
+        };
 
-        // socket?.emit("message", payload);
-        // setMessages((prev) => [...prev, { ...payload, sender: activeUser?._id }]);
-        // setMessageInput("");
+        const newMessage: any = {
+            _id: crypto.randomUUID(), // Temporary ID for client-side
+            sender: user?._id,
+            receiver: activeUser._id,
+            message: messageInput,
+            updatedAt: new Date(),
+            createdAt: new Date(),
+            isRead: false,
+            status: "sending", // Custom status to indicate it's in transit
+        };
+
+
+        // console.log(payload)
+
+        socket?.emit("event:message", newMessage);
+        setMessages(prev => {
+            const newMap = new Map(prev);
+            // console.log("Before adding:", Array.from(newMap.values()));
+            newMap.set(newMessage?._id, newMessage);
+            // console.log("After adding:", Array.from(newMap.values()));
+            return newMap;
+        });
+
+        setMessageInput("");
     };
 
     // 📥 Receive real-time message
-    useEffect(() => {
-        // socket?.on("newMessage", (data) => {
-        //   // console.log(data, "data-:")
-        //   setMessages((prev) => [...prev, data]);
-        // });
 
-        // socket?.on("deleteMsg", (deletedMessageId: string) => {
-        //   // console.log(deletedMessageId, "deleted")
-        //   setMessages((prev) => prev.filter((msg) => msg.sender !== deletedMessageId));
-        // });
+    useEffect(() => {
+        socket?.on("get:messages", (data) => {
+            // console.log(data, "data-:")
+            setMessages((prev) => {
+                const newMap = new Map(prev);
+                newMap.set(data?._id, data); // assuming data._id is unique
+                return newMap;
+            });
+        });
+
+        socket?.on("event:deleted", (deletedMessageId: any) => {
+            console.log("first",deletedMessageId)
+            setMessages((prev) => {
+                const newMap = new Map(prev);
+                newMap.delete(deletedMessageId?.messageId); // directly delete using messageId
+                return newMap;
+            });
+        });
 
         // socket?.on("editMsg", (payload) => {
         //   setMessages(prev => 
@@ -188,25 +233,32 @@ const MessagesTab = () => {
 
 
         return () => {
-            //   socket?.off("newMessage");
-            //   socket?.off("deleteMsg");
+            socket?.off("get:messages");
+            socket?.off("event:deleted");
             //   socket?.off("editMsg");
             //   socket?.off("startTyping");
             //   socket?.off("stopTyping");
         };
-    }, []);
+    }, [socket]);
 
 
 
     const handleDelete = async (messageId: string) => {
+        // console.log("first",messageId)
         const payload = {
-            _id: messageId,
-            messageId: activeUser?._id,
-            //   receiver: user?._id
+            messageId,
+            sender: user?._id,
+            reciever:activeUser?._id
         }
         // console.log(payload)
-        // socket?.emit("delete", payload);
-        setMessages((prev) => prev.filter((msg) => msg?._id !== messageId))
+        socket?.emit("event:delete", payload);
+        // setMessages((prev) => prev.filter((msg) => msg?._id !== messageId))
+        setMessages((prev)=>{
+            const newMap = new Map(prev);
+            newMap.delete(messageId)
+            return newMap;
+        })
+        setEditingMessageId
     };
 
 
@@ -218,11 +270,11 @@ const MessagesTab = () => {
             //   receiver: user?._id
         }
         // socket?.emit("edit", payload);
-        setMessages((prev) =>
-            prev.map((msg) =>
-                msg?._id === messageId ? { ...msg, message } : msg
-            )
-        )
+        // setMessages((prev) =>
+        //     prev.map((msg) =>
+        //         msg?._id === messageId ? { ...msg, message } : msg
+        //     )
+        // )
         setEditingMessageId(null);
         setEditedText("");
         setMenuMessageId(null);
@@ -248,15 +300,19 @@ const MessagesTab = () => {
         // if(user?._id) socket?.emit("seenMsg", user?._id)
     }
 
-    const handelShowSideBar = ()=>{
-        console.log(showSideBar)
+    const handelShowSideBar = () => {
+        // console.log(showSideBar)
         setShowSideBar(!showSideBar)
     }
 
+    // To get all messages as an array (for rendering):
+    const messagesArray = Array.from(messages.values());
+    // console.log(messagesArray)
 
 
 
-    console.log(messages);
+
+    // console.log(users);
 
 
     return (
@@ -264,7 +320,7 @@ const MessagesTab = () => {
             <h2 className="text-2xl font-bold md:mb-4 mb-1.5 ml-14 lg:ml-0">Messages</h2>
             <div className="grid grid-cols-3 gap-4 w-full h-full">
                 {/* Sidebar */}
-                <div className={`lg:col-span-1 col-span-3 lg:block ${showSideBar ? ("block"):("hidden")}`}>
+                <div className={`lg:col-span-1 col-span-3 lg:block ${showSideBar ? ("block") : ("hidden")}`}>
                     <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-md border border-gray-200 h-full overflow-y-auto">
                         <div className="card-body">
                             <h3 className="card-title mb-4">Conversations</h3>
@@ -299,7 +355,7 @@ const MessagesTab = () => {
                                                         <div className="flex gap-2 items-center justify-center">
                                                             <Image
                                                                 urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
-                                                                src={user.profilePic || ""}
+                                                                src={user.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
                                                                 alt="profilePic"
                                                                 width={40}
                                                                 height={40}
@@ -339,31 +395,31 @@ const MessagesTab = () => {
                                     users?.map((name: any) => (
                                         <div
 
-                                            key={name._id}
+                                            key={name._id || name?.userId}
                                             className={`flex items-center space-x-3 p-2 rounded-xl cursor-pointer transition-all ${activeUser.username === name.username
                                                 ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-md"
                                                 : "hover:bg-white/60 hover:shadow-sm"
                                                 }`}
                                             onClick={() => {
-                                                setActiveUser({ ...activeUser, username: name?.username, profilePic: name.profilePic, _id: name?._id });
-                                                //   socket?.emit("joinRoom", name?._id);
+                                                setActiveUser({ ...activeUser, username: name?.username, profilePic: name.profilePic, _id: name?._id || name?.userId });
+                                                socket?.emit("joinRoom", user?._id);
                                                 handleSeen();
-                                                handelShowSideBar()
+                                                handelShowSideBar();
                                             }}
 
                                         >
                                             <div className="relative w-10 h-10">
                                                 <Image
                                                     urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
-                                                    src={name.profilePic || ""}
+                                                    src={name.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
                                                     alt="profilePic"
                                                     width={40}
                                                     height={40}
                                                     className="object-cover w-full h-full rounded-full border border-gray-200"
                                                 />
-                                                {/* {onlineUsers?.includes(name._id) && (
-                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-1 border-white rounded-full" />
-                      )} */}
+                                                {onlineUsers?.includes(name?._id || name?.userId) && (
+                                                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-1 border-white rounded-full" />
+                                                )}
                                             </div>
                                             <div>
                                                 <div className="font-semibold text-sm">{name?.username.charAt(0).toUpperCase() + name?.username.slice(1)}</div>
@@ -380,19 +436,19 @@ const MessagesTab = () => {
                 </div>
 
                 {/* Chat Area */}
-                <div className={`lg:col-span-2 col-span-3 lg:block ${showSideBar ? ("hidden"):("block") }`}>
+                <div className={`lg:col-span-2 col-span-3 lg:block ${showSideBar ? ("hidden") : ("block")}`}>
                     <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-md border border-gray-200 h-full flex flex-col">
                         {activeUser?.username && <div className="md:p-3 border-b border-gray-200 flex items-center justify-between">
                             <div className="w-full flex items-center justify-between">
                                 <div className="flex items-center gap-x-3">
-                                        <ArrowLeft
+                                    <ArrowLeft
                                         className="cursor-pointer lg:hidden text-gray-700 hover:text-black"
                                         onClick={handelShowSideBar}
-                                        />
+                                    />
                                     <div className="avatar">
                                         <div className="avatar placeholder w-10 h-10 rounded-full overflow-hidden flex items-center justify-center">
-                                           
-                                            <Image urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT} src={activeUser?.profilePic || ""} alt="profilePic" width={40} height={40} className="object-cover w-full h-full" />
+
+                                            <Image urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT} src={activeUser?.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"} alt="profilePic" width={40} height={40} className="object-cover w-full h-full" />
                                         </div>
                                     </div>
 
@@ -408,28 +464,29 @@ const MessagesTab = () => {
                                     //   socket?.emit("leaveRoom", activeUser?._id);
                                     //   socket?.off("seenMsg", activeUser?._id as any);
                                     setActiveUser({ _id: "", username: "", profilePic: "" });
+                                    setShowSideBar(true)
                                 }} className='cursor-pointer'> <MessageCircleX />
                                 </button>
                             </div>
                         </div>}
-                        <div className="card-body flex flex-col h-full">
+                        <div className="card-body flex flex-col h-full ">
 
                             {activeUser?.username ? (
-                                <div className="flex-1 flex flex-col md:gap-2 gap-4 overflow-y-auto h-auto pr-2">
+                                <div className="flex-1  flex flex-col md:gap-2 gap-4 overflow-y-auto h-auto pr-2">
                                     {
                                         getMessages?.isPending && (
                                             <p className="md:text-xl text-sm text-gray-800">Wait Loading...</p>
                                         )
                                     }
-                                    {getMessages?.isSuccess && messages?.map((msg, i) => {
-                                        const isOwn = msg.sender !== user?._id;
+                                    {getMessages?.isSuccess && messagesArray?.map((msg: any, i) => {
+                                        const isOwn = msg?.sender !== user?._id;
                                         return (
                                             <div
                                                 key={i}
-                                                className={`flex items-end md:gap-2 group ${isOwn ? "justify-end" : "justify-start"}`}>
+                                                className={`flex items-end md:gap-2 group ${isOwn ? "justify-start" : "justify-end"}`}>
 
                                                 {!isOwn ? <img
-                                                    src={activeUser?.profilePic || ""}
+                                                    src={activeUser?.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
                                                     alt="Avatar"
                                                     className="w-8 h-8 rounded-full object-cover"
                                                 /> : ""}
@@ -441,7 +498,7 @@ const MessagesTab = () => {
                                                             : "bg-gray-100 text-gray-800 rounded-bl-none"
                                                             }`}>
 
-                                                        {editingMessageId === msg._id ? (
+                                                        {editingMessageId === msg?._id ? (
                                                             <div className="flex items-center gap-2 w-full">
                                                                 <input
                                                                     type="text"
@@ -469,7 +526,7 @@ const MessagesTab = () => {
                                                             </div>
                                                         ) : (
                                                             <>
-                                                                {msg.video && (
+                                                                {/* {msg?.video && (
                                                                     <video
                                                                         controls
                                                                         className="rounded-lg max-w-64 mb-2">
@@ -479,36 +536,36 @@ const MessagesTab = () => {
 
                                                                 {msg.image && (
                                                                     <img src={msg.image} alt="Sent image" className="rounded-lg max-w-64 mb-2" />
-                                                                )}
+                                                                )} */}
 
                                                                 {/* Text */}
-                                                                {msg.message && (
+                                                                {msg?.message && (
                                                                     <p className=" text-sm whitespace-pre-line">
-                                                                        {msg.message}
+                                                                        {msg?.message}
                                                                     </p>
                                                                 )}
 
                                                                 {isOwn && (
-                                                                    <div className="flex justify-end mt-1"> <CheckCheck size={16} className={`ml-1 ${msg.seen ? 'text-[#00a6ff]' : 'text-gray-400'}`} />
+                                                                    <div className="flex justify-end mt-1"> <CheckCheck size={16} className={`ml-1 ${msg?.seen ? 'text-[#00a6ff]' : 'text-gray-400'}`} />
                                                                     </div>
                                                                 )}
                                                             </>
                                                         )}
 
-                                                        {isOwn && (
+                                                        {!isOwn && (
                                                             <div className="relative group ml-2">
                                                                 <button
-                                                                    onClick={() => setMenuMessageId(msg._id)}
+                                                                    onClick={() => setMenuMessageId(msg?._id)}
                                                                     className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 transform hover:translate-y-1">
                                                                     {!editingMessageId && <ChevronDown size={18} className="text-gray-500 cursor-pointer hover:text-black dark:hover:text-white transition-transform duration-200" />}
                                                                 </button>
 
-                                                                {menuMessageId === msg._id && (
-                                                                    <div className="absolute top-7 right-0 z-20 bg-white dark:bg-gray-800 rounded-lg shadow-xl w-32 animate-fade-in-up p-2">
+                                                                {menuMessageId === msg?._id && (
+                                                                    <div className="absolute top-7 right-0 z-20 bg-white  rounded-lg shadow-xl w-32 animate-fade-in-up p-2">
                                                                         <button
                                                                             onClick={() => {
-                                                                                setEditedText(msg.message);
-                                                                                setEditingMessageId(msg._id);
+                                                                                setEditedText(msg?.message);
+                                                                                setEditingMessageId(msg?._id);
                                                                                 setMenuMessageId(null);
                                                                             }}
                                                                             className="rounded-md cursor-pointer w-full flex gap-2 items-center px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -516,7 +573,7 @@ const MessagesTab = () => {
                                                                         </button>
                                                                         <button
                                                                             onClick={() => {
-                                                                                handleDelete(msg._id);
+                                                                                handleDelete(msg?._id);
                                                                                 setMenuMessageId(null);
                                                                             }}
                                                                             className="rounded-md cursor-pointer w-full flex gap-1 items-center px-4 py-2 text-left text-sm transition-colors hover:bg-[#9c3e41]">
@@ -537,7 +594,7 @@ const MessagesTab = () => {
 
                                                 {isOwn && (
                                                     <img
-                                                        src={activeUser?.profilePic || ""}
+                                                        src={activeUser?.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
                                                         alt="Avatar"
                                                         className="w-8 h-8 rounded-full object-cover border"
                                                     />
@@ -594,7 +651,7 @@ const MessagesTab = () => {
                                         value={messageInput}
                                         onChange={(e) => {
                                             setMessageInput(e.target.value);
-                                            handleTyping();
+                                            // handleTyping();
                                         }}
                                         placeholder="Type a message..."
                                         className="flex-1 md:px-4 md:py-2 px-1.5 py-1 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-400 outline-none transition"

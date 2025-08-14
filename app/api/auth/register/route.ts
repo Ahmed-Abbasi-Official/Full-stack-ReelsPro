@@ -43,8 +43,11 @@ export async function POST(request: NextRequest) {
         const existingUsername = await User.findOne({ username });
 
         if (existingUsername) {
+            
             return nextError(409, "username already exist")
         }
+
+        console.log("first")
 
         // CHECKING FOR EMAIL AND CREATE CODE ;
 

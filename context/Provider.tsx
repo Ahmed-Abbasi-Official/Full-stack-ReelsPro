@@ -9,6 +9,7 @@ import { SessionProvider } from "next-auth/react";
 import { ImageKitProvider } from "@imagekit/next";
 import { VideoProvider } from "@/hooks/useVideo";
 import { MessagesProviders } from "@/hooks/useMessages";
+import { SocketProvider } from "@/hooks/useSocket";
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -20,14 +21,14 @@ export default function Providers({ children }: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         {/* <ThemeProvider> */}
           <UserProvider>
-            {/* <SocketProvider> */}
+            <SocketProvider>
               <VideoProvider>
                 <MessagesProviders> 
                 {children}
                 </MessagesProviders>
                 <ToastContainer autoClose={2000} />
               </VideoProvider>
-            {/* </SocketProvider> */}
+            </SocketProvider>
           </UserProvider>
         {/* </ThemeProvider> */}
       </QueryClientProvider>
