@@ -57,3 +57,43 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
     return nextResponse(200, "Messages Fetched Successfully!", messages);
 
 })
+
+export const PATCH = asyncHandler(async (req: NextRequest): Promise<NextResponse> => {
+
+    const session = await getServerSession(authOptions);
+    if (!session || !session?.user) {
+        return nextError(404, "User is Unauthorized!")
+    }
+
+    const { searchParams } = new URL(req.url);
+
+    const username = searchParams.get("username");
+    console.log("username")
+
+    if (!username) {
+        return nextError(400, "Required Missing Fileds!");
+    };
+
+    await DBConnect();
+    const user = await User.findOne({ username });
+    if (!user) {
+        return nextError(400, "User not found!")
+    }
+    // console.log(user)
+
+
+
+    await Message.updateMany(
+        {
+            sender: user?._id, receiver: session?.user?._id
+        },
+        {
+            $set: { isRead: true }
+        }
+    )
+
+
+
+    return nextResponse(200, "Updated Successfully!", "");
+
+})

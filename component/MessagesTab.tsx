@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, CheckCheck, ChevronDown, MessageCircleX, MessageSquare, Send, Trash2, Upload, UserRoundPen, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import FileUpload from "@/app/component/FileUpload";
 import toast from "react-hot-toast";
@@ -11,6 +11,7 @@ import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useSocket } from "@/hooks/useSocket";
 import { UploadOptions } from "./UploadOption";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 interface Message {
@@ -73,8 +74,18 @@ const MessagesTab = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<any>(null);
     const [showSideBar, setShowSideBar] = useState(true)
-    const { userSearch, sideBarUsers, getMessages } = useMessages();
+    const { userSearch, sideBarUsers, getMessages ,handleSeeen} = useMessages();
     const { data: session } = useSession();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const userIdRef = useRef<any | null>(null); // initialize ref
+
+    // keep ref updated whenever search param changes
+    useEffect(() => {
+        userIdRef.current = activeUser;
+    }, [activeUser]);
+    // console.log(userId)
+
     const user: any = session?.user;
 
     //   const {userSearch} = UserSearching("a")
@@ -131,11 +142,12 @@ const MessagesTab = () => {
     }
 
 
-    // useEffect(() => {
+    useEffect(() => {
 
-    //     console.log(sideBarUsers)
+        
 
-    // }, [])
+    }, [])
+    // handleSeeen.mutate();
     // console.log(activeUser)
 
 
@@ -225,10 +237,28 @@ const MessagesTab = () => {
 
     // 📥 Receive real-time message
 
+    //* FOR REAL TIME UPDATE :
+
+    const run:any=async()=>{
+
+         const username = userIdRef.current?.username;
+         console.log(username)
+                if (username) {
+                    try {
+                        const res = await axios.patch(`/api/messages/get-message?username=${username}`);
+                        // console.log(res?.data);
+                    } catch (error) {
+                        console.error("PATCH failed:", error);
+                    }
+                }
+    }
+    
+
     useEffect(() => {
         socket?.on("get:messages", (data) => {
             //  console.log(users)
             // console.log(data, "data-:")
+            // console.log(activeUser)
             setMessages((prev) => {
                 const newMap = new Map(prev);
                 newMap.set(data?._id, data); // assuming data._id is unique
@@ -241,6 +271,7 @@ const MessagesTab = () => {
                 profilePic: data?.profilePic,
                 username: data?.username,
             }
+
 
             setUsers((prevUser: any) => {
                 const existUser = prevUser?.find((user: any) => user?.userId === data?.sender)
@@ -255,14 +286,32 @@ const MessagesTab = () => {
 
         });
 
-        socket?.on("event:saw", (sender) => {
+
+
+        socket?.on("event:saw", async (sender) => {
             console.log("Reciver User ID : ", sender)
-            const read = activeUser?._id === sender;
-            console.log("Logged In User ID : ", user?._id)
-            //    console.log(read);
+            // console.log(activeUser)
+            // setActiveUser((prev:any)=>{console.log(prev)})
+            const userId = userIdRef.current?._id;
+            const read = userId === sender;
+            // console.log("Logged In User ID : ", user?._id)
+            // console.log(read, userId);
             if (!read) {
                 setReciever(sender)
                 setIsRead((prev) => prev + 1);
+            } else {
+                setReciever(sender)
+                setIsRead(0)
+                run()
+                // const username = userIdRef.current?.username;
+                // if (username) {
+                //     try {
+                //         const res = await axios.patch(`/api/messages/get-seen?username=${username}`);
+                //         console.log(res?.data);
+                //     } catch (error) {
+                //         console.error("PATCH failed:", error);
+                //     }
+                // }
 
             }
 
@@ -328,7 +377,8 @@ const MessagesTab = () => {
         };
     }, [socket]);
 
-    console.log(isRead)
+    // console.log(isRead)
+
 
 
 
@@ -485,10 +535,11 @@ const MessagesTab = () => {
                                                 : "hover:bg-white/60 hover:shadow-sm"
                                                 }`}
                                             onClick={() => {
+                                                // router.push(`/?section=messages&userId=${name?._id || name?.userId}`);
                                                 setActiveUser({ ...activeUser, username: name?.username, profilePic: name?.profilePic, _id: name?._id || name?.userId });
                                                 socket?.emit("joinRoom", user?._id);
                                                 setIsRead(0);
-                                                name.unreadCount=0;
+                                                name.unreadCount = 0;
                                                 handelShowSideBar();
                                             }}
 
@@ -508,7 +559,7 @@ const MessagesTab = () => {
                                                 {
                                                     (isRead > 0 && (name?.userId === reciever)) ? (
                                                         <p className="absolute bottom-0 -right-2 text-green-900 text-sm ">{isRead}</p>
-                                                    ):(
+                                                    ) : (
                                                         <p className="absolute bottom-0 -right-2 text-green-900 text-sm ">{name?.unreadCount}</p>
                                                     )
                                                 }

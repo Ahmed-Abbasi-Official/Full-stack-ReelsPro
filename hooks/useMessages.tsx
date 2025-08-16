@@ -7,6 +7,7 @@ interface MessagesContextType {
     userSearch:UseMutationResult<AxiosResponse<any,any>,Error,string,unknown>
     sideBarUsers:UseMutationResult<AxiosResponse<any,any>,Error,void,unknown>
     getMessages:UseMutationResult<AxiosResponse<any,any>,Error,void,unknown>
+    handleSeeen:UseMutationResult<AxiosResponse<any,any>,Error,void,unknown>
 };
 
 
@@ -63,8 +64,16 @@ export const MessagesProviders = ({ children }: { children: ReactNode }) => {
         }
     })
 
+    const handleSeeen = useMutation({
+        mutationFn:async()=>{
+            console.log("asd")
+            const res = await axios.get(`/api/messages/get-seen`);
+                        console.log(res?.data);
+        }
+    })
+
     return (
-        <MessagesContext.Provider value={{  userSearch  , sideBarUsers,getMessages}}>
+        <MessagesContext.Provider value={{  userSearch  , sideBarUsers,getMessages,handleSeeen}}>
             {children}
         </MessagesContext.Provider>
     );
