@@ -10,6 +10,7 @@ interface ExtendedUser {
   email: string;
   username: string;
   isVerified: boolean;
+  profilePic:string;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -59,15 +60,17 @@ export const authOptions: NextAuthOptions = {
         token._id = u._id;
         token.username = u.username;
         token.isVerified = u.isVerified;
+        token.profilePic = u.profilePic;
       }
       return token;
     },
 
-    async session({ session, token }) {
+    async session({ session, token }:any) {
       if (session.user) {
         session.user._id = token._id as string;
         session.user.username = token.username as string;
         session.user.isVerified = token.isVerified as boolean;
+        session.user.profilePic = token.profilePic as string;
       }
       return session;
     },

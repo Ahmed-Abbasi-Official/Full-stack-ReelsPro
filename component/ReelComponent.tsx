@@ -61,7 +61,7 @@ export default function ReelComponent() {
       {getAllVideos?.isLoading ? (
         <Loader />
       ) : (
-        <div className="relative w-full sm:h-[calc(100vh-80px)] h-[calc(100vh-0px)] flex md:justify-center justify-between items-center">
+        <div className="relative w-full sm:h-[calc(100vh-80px)] h-[calc(100vh-0px)] flex md:justify-center justify-center items-center">
           <div
             ref={containerRef}
             className="md:max-w-[27rem] shadow-white shadow-sm sm:rounded-lg h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"

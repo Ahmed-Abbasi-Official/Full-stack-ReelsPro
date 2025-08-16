@@ -3,11 +3,14 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import FileUpload from "@/app/component/FileUpload";
 import toast from "react-hot-toast";
-import { Image } from "@imagekit/next";
+import { Image, Video } from "@imagekit/next";
 import { useMessages } from "@/hooks/useMessages";
+// import Image from "next/image";
+import { format } from "date-fns";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useSocket } from "@/hooks/useSocket";
+import { UploadOptions } from "./UploadOption";
 
 
 interface Message {
@@ -22,6 +25,19 @@ interface Message {
 
 }
 
+const isMediaLink = (url: string) => {
+    return url.startsWith("https://ik.imagekit.io/");
+};
+
+const isImage = (url: string) => {
+    return /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(url);
+};
+
+const isVideo = (url: string) => {
+    return /\.(mp4|webm|ogg)$/i.test(url);
+};
+
+
 
 const MessagesTab = () => {
 
@@ -35,6 +51,7 @@ const MessagesTab = () => {
     });
     const [users, setUsers] = useState<any>([]);
     const [searchUser, setsearchUser] = useState([])
+    const [loaded, setLoaded] = useState(false);
 
     const [search, setSearch] = useState<string | null>('');
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -45,6 +62,9 @@ const MessagesTab = () => {
     const { onlineUsers, socket } = useSocket();
 
     const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
+    const [imageUrl, setImageUrl] = useState("")
+    const [isRead, setIsRead] = useState(0)
+    const [reciever, setReciever] = useState(null)
 
     const [editingMessageId, setEditingMessageId] = useState(null);
     const [editedText, setEditedText] = useState('');
@@ -55,7 +75,7 @@ const MessagesTab = () => {
     const [showSideBar, setShowSideBar] = useState(true)
     const { userSearch, sideBarUsers, getMessages } = useMessages();
     const { data: session } = useSession();
-    const user = session?.user;
+    const user: any = session?.user;
 
     //   const {userSearch} = UserSearching("a")
     //   const {userSearch} = UserSearching("username")
@@ -64,7 +84,10 @@ const MessagesTab = () => {
     //     console.log("Online-Users : ", onlineUsers);
     // });
 
+    // console.log(session?.user)
+
     useEffect(() => {
+        // socket?.emit("joinRoom", user?._id);
         const fetchUsers = async () => {
             try {
                 const res = await axios.get("/api/messages/get-users");
@@ -81,6 +104,10 @@ const MessagesTab = () => {
 
         fetchUsers();
     }, []);
+    useEffect(() => {
+        socket?.emit("joinRoom", user?._id);
+        console.log("hugya")
+    }, [socket])
 
 
 
@@ -137,8 +164,11 @@ const MessagesTab = () => {
     }, [activeUser?.username])
 
 
+
+
     // 📤 Send message
     const handleSendMessage = () => {
+
         // console.log("aya")
         if (!messageInput.trim() || !activeUser._id) return;
         // console.log(first)
@@ -158,12 +188,21 @@ const MessagesTab = () => {
             createdAt: new Date(),
             isRead: false,
             status: "sending", // Custom status to indicate it's in transit
+            username: user?.username,
+            profilePic: user?.profilePic
         };
 
 
+
         // console.log(payload)
+        const payload = {
+            reciever: newMessage?.receiver,
+            sender: newMessage?.sender,
+        }
 
         socket?.emit("event:message", newMessage);
+        socket?.emit("event:checkUser", newMessage);
+        socket?.emit("event:seen", payload);
         setMessages(prev => {
             const newMap = new Map(prev);
             // console.log("Before adding:", Array.from(newMap.values()));
@@ -173,22 +212,69 @@ const MessagesTab = () => {
         });
 
         setMessageInput("");
+        setImageUrl("")
     };
+
+    useEffect(() => {
+        if (imageUrl) {
+            setMessageInput(imageUrl)
+        }
+
+        console.log(imageUrl)
+    }, [imageUrl])
 
     // 📥 Receive real-time message
 
     useEffect(() => {
         socket?.on("get:messages", (data) => {
+            //  console.log(users)
             // console.log(data, "data-:")
             setMessages((prev) => {
                 const newMap = new Map(prev);
                 newMap.set(data?._id, data); // assuming data._id is unique
                 return newMap;
             });
+            // console.log(data)
+
+            const payload = {
+                userId: data?.sender,
+                profilePic: data?.profilePic,
+                username: data?.username,
+            }
+
+            setUsers((prevUser: any) => {
+                const existUser = prevUser?.find((user: any) => user?.userId === data?.sender)
+                if (existUser) {
+                    const filterUsers = prevUser?.filter((user: any) => user?.userId !== data?.sender);
+                    return [existUser, ...filterUsers];
+                } else {
+                    return [payload, ...prevUser]
+                }
+            })
+            // console.log(users)
+
         });
 
+        socket?.on("event:saw", (sender) => {
+            console.log("Reciver User ID : ", sender)
+            const read = activeUser?._id === sender;
+            console.log("Logged In User ID : ", user?._id)
+            //    console.log(read);
+            if (!read) {
+                setReciever(sender)
+                setIsRead((prev) => prev + 1);
+
+            }
+
+        })
+
+        socket?.on("get:user", (data) => {
+            // console.log("first",data)
+
+        })
+
         socket?.on("event:deleted", (deletedMessageId: any) => {
-            console.log("first",deletedMessageId)
+            console.log("first", deletedMessageId)
             setMessages((prev) => {
                 const newMap = new Map(prev);
                 newMap.delete(deletedMessageId?.messageId); // directly delete using messageId
@@ -235,11 +321,14 @@ const MessagesTab = () => {
         return () => {
             socket?.off("get:messages");
             socket?.off("event:deleted");
-            //   socket?.off("editMsg");
+            socket?.off("get:user");
+            socket?.off("event:saw");
             //   socket?.off("startTyping");
             //   socket?.off("stopTyping");
         };
     }, [socket]);
+
+    console.log(isRead)
 
 
 
@@ -248,12 +337,12 @@ const MessagesTab = () => {
         const payload = {
             messageId,
             sender: user?._id,
-            reciever:activeUser?._id
+            reciever: activeUser?._id
         }
         // console.log(payload)
         socket?.emit("event:delete", payload);
         // setMessages((prev) => prev.filter((msg) => msg?._id !== messageId))
-        setMessages((prev)=>{
+        setMessages((prev) => {
             const newMap = new Map(prev);
             newMap.delete(messageId)
             return newMap;
@@ -308,12 +397,7 @@ const MessagesTab = () => {
     // To get all messages as an array (for rendering):
     const messagesArray = Array.from(messages.values());
     // console.log(messagesArray)
-
-
-
-
-    // console.log(users);
-
+    // console.log(users)
 
     return (
         <div className="p-1 md:p-6 h-[calc(100vh-40px)] w-full">
@@ -395,15 +479,16 @@ const MessagesTab = () => {
                                     users?.map((name: any) => (
                                         <div
 
-                                            key={name._id || name?.userId}
+                                            key={name?._id || name?.userId}
                                             className={`flex items-center space-x-3 p-2 rounded-xl cursor-pointer transition-all ${activeUser.username === name.username
                                                 ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-md"
                                                 : "hover:bg-white/60 hover:shadow-sm"
                                                 }`}
                                             onClick={() => {
-                                                setActiveUser({ ...activeUser, username: name?.username, profilePic: name.profilePic, _id: name?._id || name?.userId });
+                                                setActiveUser({ ...activeUser, username: name?.username, profilePic: name?.profilePic, _id: name?._id || name?.userId });
                                                 socket?.emit("joinRoom", user?._id);
-                                                handleSeen();
+                                                setIsRead(0);
+                                                name.unreadCount=0;
                                                 handelShowSideBar();
                                             }}
 
@@ -411,7 +496,7 @@ const MessagesTab = () => {
                                             <div className="relative w-10 h-10">
                                                 <Image
                                                     urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
-                                                    src={name.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
+                                                    src={name?.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
                                                     alt="profilePic"
                                                     width={40}
                                                     height={40}
@@ -420,6 +505,13 @@ const MessagesTab = () => {
                                                 {onlineUsers?.includes(name?._id || name?.userId) && (
                                                     <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-1 border-white rounded-full" />
                                                 )}
+                                                {
+                                                    (isRead > 0 && (name?.userId === reciever)) ? (
+                                                        <p className="absolute bottom-0 -right-2 text-green-900 text-sm ">{isRead}</p>
+                                                    ):(
+                                                        <p className="absolute bottom-0 -right-2 text-green-900 text-sm ">{name?.unreadCount}</p>
+                                                    )
+                                                }
                                             </div>
                                             <div>
                                                 <div className="font-semibold text-sm">{name?.username.charAt(0).toUpperCase() + name?.username.slice(1)}</div>
@@ -469,64 +561,67 @@ const MessagesTab = () => {
                                 </button>
                             </div>
                         </div>}
-                        <div className="card-body flex flex-col h-full ">
+                        <div className="sm:card-body p-2 flex flex-col w-full h-full  ">
 
-                            {activeUser?.username ? (
-                                <div className="flex-1  flex flex-col md:gap-2 gap-4 overflow-y-auto h-auto pr-2">
-                                    {
-                                        getMessages?.isPending && (
-                                            <p className="md:text-xl text-sm text-gray-800">Wait Loading...</p>
-                                        )
-                                    }
-                                    {getMessages?.isSuccess && messagesArray?.map((msg: any, i) => {
-                                        const isOwn = msg?.sender !== user?._id;
-                                        return (
-                                            <div
-                                                key={i}
-                                                className={`flex items-end md:gap-2 group ${isOwn ? "justify-start" : "justify-end"}`}>
+                            <div className="overflow-auto very-thin-scrollbar w-full h-[calc(100vh-180px)]  md:h-[calc(100vh-240px)]">
+                                {activeUser?.username ? (
+                                    <div className="flex-1 flex flex-col md:gap-2 gap-4 pr-2 ">
+                                        {
+                                            getMessages?.isPending && (
+                                                <p className="md:text-xl text-sm text-gray-800">Wait Loading...</p>
+                                            )
+                                        }
+                                        {getMessages?.isSuccess && messagesArray?.map((msg: any, i) => {
+                                            const isOwn = msg?.sender !== user?._id;
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className={`flex items-end md:gap-2 group ${isOwn ? "justify-start" : "justify-end"}`}>
 
-                                                {!isOwn ? <img
-                                                    src={activeUser?.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
-                                                    alt="Avatar"
-                                                    className="w-8 h-8 rounded-full object-cover"
-                                                /> : ""}
+                                                    {!isOwn ? <img
+                                                        src={user?.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
+                                                        alt="Avatar"
+                                                        className="w-8 h-8 rounded-full object-cover"
+                                                    /> : ""}
 
-                                                <div className={`relative max-w-[75%]`}>
-                                                    <div
-                                                        className={`px-3 pt-2 rounded-xl text-sm shadow-md break-words flex ${isOwn
-                                                            ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-br-none"
-                                                            : "bg-gray-100 text-gray-800 rounded-bl-none"
-                                                            }`}>
+                                                    <div className={`relative max-w-[75%]`}>
+                                                        <div
+                                                            className={`px-3 pt-2 rounded-xl text-sm shadow-md break-words flex ${isOwn
+                                                                ? "bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-br-none"
+                                                                : "bg-gray-100 text-gray-800 rounded-bl-none"
+                                                                }`}>
 
-                                                        {editingMessageId === msg?._id ? (
-                                                            <div className="flex items-center gap-2 w-full">
-                                                                <input
-                                                                    type="text"
-                                                                    value={editedText}
-                                                                    onChange={(e) => setEditedText(e.target.value)}
-                                                                    className="bg-transparent outline-none border-b border-gray-400 text-sm flex-1"
-                                                                    autoFocus
-                                                                />
-                                                                <button
-                                                                    onClick={() => {
-                                                                        console.log('Save edited message:', editedText);
-                                                                        handleUpdate(msg._id, editedText);
-                                                                    }}
-                                                                    className="text-xs px-1.5 py-1 mb-0.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                                                                    <Check />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        console.log('Save edited message:', editedText);
-                                                                        handleUpdate(msg._id, editedText);
-                                                                    }}
-                                                                    className="text-xs px-1.5 py-1 mb-0.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                                                                    <X />
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                {/* {msg?.video && (
+                                                            {
+                                                                // editingMessageId === msg?._id ? (
+                                                                //     <div className="flex items-center gap-2 w-full">
+                                                                //         <input
+                                                                //             type="text"
+                                                                //             value={editedText}
+                                                                //             onChange={(e) => setEditedText(e.target.value)}
+                                                                //             className="bg-transparent outline-none border-b border-gray-400 text-sm flex-1"
+                                                                //             autoFocus
+                                                                //         />
+                                                                //         <button
+                                                                //             onClick={() => {
+                                                                //                 console.log('Save edited message:', editedText);
+                                                                //                 handleUpdate(msg._id, editedText);
+                                                                //             }}
+                                                                //             className="text-xs px-1.5 py-1 mb-0.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                                                                //             <Check />
+                                                                //         </button>
+                                                                //         <button
+                                                                //             onClick={() => {
+                                                                //                 console.log('Save edited message:', editedText);
+                                                                //                 handleUpdate(msg._id, editedText);
+                                                                //             }}
+                                                                //             className="text-xs px-1.5 py-1 mb-0.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                                                                //             <X />
+                                                                //         </button>
+                                                                //     </div>
+                                                                // ) : 
+                                                                (
+                                                                    <>
+                                                                        {/* {msg?.video && (
                                                                     <video
                                                                         controls
                                                                         className="rounded-lg max-w-64 mb-2">
@@ -538,31 +633,73 @@ const MessagesTab = () => {
                                                                     <img src={msg.image} alt="Sent image" className="rounded-lg max-w-64 mb-2" />
                                                                 )} */}
 
-                                                                {/* Text */}
-                                                                {msg?.message && (
-                                                                    <p className=" text-sm whitespace-pre-line">
-                                                                        {msg?.message}
-                                                                    </p>
+                                                                        {/* Text */}
+                                                                        {msg?.message && (
+                                                                            <>
+                                                                                <div>
+                                                                                    {
+                                                                                        isMediaLink(msg?.message) ? (
+                                                                                            <>
+                                                                                                {isImage(msg.message) ? (
+                                                                                                    <img
+                                                                                                        // urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
+                                                                                                        src={msg?.message}
+                                                                                                        alt="sent media"
+                                                                                                        // width={36}
+                                                                                                        // height={36}
+                                                                                                        className={`sm:w-full w-full sm:h-72 object-center rounded-md transition duration-500 `}
+                                                                                                    // onLoad={() => setLoaded(true)}
+                                                                                                    />
+                                                                                                ) : isVideo(msg?.message) ? (
+                                                                                                    <Video
+                                                                                                        urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
+                                                                                                        src={msg?.message}
+                                                                                                        controls
+                                                                                                        width={36}
+                                                                                                        height={36}
+                                                                                                        className="w-full h-72 object-center rounded-md"
+                                                                                                    />
+                                                                                                ) : (
+                                                                                                    <a
+                                                                                                        href={msg?.message}
+                                                                                                        target="_blank"
+                                                                                                        rel="noopener noreferrer"
+                                                                                                        className="text-blue-500 cursor-pointer underline"
+                                                                                                    >
+                                                                                                        {msg.message}
+                                                                                                    </a>
+                                                                                                )}
+                                                                                            </>
+                                                                                        ) : (
+                                                                                            <p className=" text-sm sm:w-72 cursor-pointer w-52  whitespace-pre-line">
+                                                                                                {msg?.message}
+                                                                                            </p>
+                                                                                        )
+                                                                                    }
+                                                                                    <p className="text-sm  text-gray-500">{msg?.createdAt && format(new Date(msg.createdAt), "dd MMM yyyy, hh:mm a")}</p>
+                                                                                </div>
+                                                                            </>
+                                                                        )}
+
+
+                                                                        {isOwn && (
+                                                                            <div className="flex justify-end mt-1"> <CheckCheck size={16} className={`ml-1 ${msg?.seen ? 'text-[#00a6ff]' : 'text-gray-400'}`} />
+                                                                            </div>
+                                                                        )}
+                                                                    </>
                                                                 )}
 
-                                                                {isOwn && (
-                                                                    <div className="flex justify-end mt-1"> <CheckCheck size={16} className={`ml-1 ${msg?.seen ? 'text-[#00a6ff]' : 'text-gray-400'}`} />
-                                                                    </div>
-                                                                )}
-                                                            </>
-                                                        )}
+                                                            {!isOwn && (
+                                                                <div className="relative group ml-2">
+                                                                    <button
+                                                                        onClick={() => setMenuMessageId(msg?._id)}
+                                                                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 transform hover:translate-y-1">
+                                                                        {!editingMessageId && <ChevronDown size={18} className="text-gray-500 cursor-pointer hover:text-black dark:hover:text-white transition-transform duration-200" />}
+                                                                    </button>
 
-                                                        {!isOwn && (
-                                                            <div className="relative group ml-2">
-                                                                <button
-                                                                    onClick={() => setMenuMessageId(msg?._id)}
-                                                                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 transform hover:translate-y-1">
-                                                                    {!editingMessageId && <ChevronDown size={18} className="text-gray-500 cursor-pointer hover:text-black dark:hover:text-white transition-transform duration-200" />}
-                                                                </button>
-
-                                                                {menuMessageId === msg?._id && (
-                                                                    <div className="absolute top-7 right-0 z-20 bg-white  rounded-lg shadow-xl w-32 animate-fade-in-up p-2">
-                                                                        <button
+                                                                    {menuMessageId === msg?._id && (
+                                                                        <div className="absolute top-7 right-0 z-20 bg-white  rounded-lg shadow-xl w-32 animate-fade-in-up p-2">
+                                                                            {/* <button
                                                                             onClick={() => {
                                                                                 setEditedText(msg?.message);
                                                                                 setEditingMessageId(msg?._id);
@@ -570,57 +707,58 @@ const MessagesTab = () => {
                                                                             }}
                                                                             className="rounded-md cursor-pointer w-full flex gap-2 items-center px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                                                             <UserRoundPen size={17} /> Edit
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                handleDelete(msg?._id);
-                                                                                setMenuMessageId(null);
-                                                                            }}
-                                                                            className="rounded-md cursor-pointer w-full flex gap-1 items-center px-4 py-2 text-left text-sm transition-colors hover:bg-[#9c3e41]">
-                                                                            <Trash2 size={17} /> Delete
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => setMenuMessageId(null)}
-                                                                            className="rounded-md cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                                                            ❌ Cancel
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                        </button> */}
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    handleDelete(msg?._id);
+                                                                                    setMenuMessageId(null);
+                                                                                }}
+                                                                                className="rounded-md cursor-pointer w-full flex gap-1 items-center px-4 py-2 text-left text-sm transition-colors hover:bg-[#9c3e41]">
+                                                                                <Trash2 size={17} /> Delete
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => setMenuMessageId(null)}
+                                                                                className="rounded-md cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                                                                ❌ Cancel
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
                                                     </div>
 
+                                                    {isOwn && (
+                                                        <img
+                                                            src={"https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
+                                                            alt="Avatar"
+                                                            className="w-4 h-4 rounded-full object-cover border"
+                                                        />
+                                                    )}
                                                 </div>
-
-                                                {isOwn && (
-                                                    <img
-                                                        src={activeUser?.profilePic || "https://ik.imagekit.io/dw09wk9tq/ahmed_Z6BJHk6v_.jpeg?updatedAt=1736181779211"}
-                                                        alt="Avatar"
-                                                        className="w-8 h-8 rounded-full object-cover border"
-                                                    />
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <div className="w-full flex flex-1 flex-col items-center justify-center p-16 bg-base-100/50">
-                                    <div className="max-w-md text-center space-y-6">
-                                        <div className="flex justify-center gap-4 mb-4">
-                                            <div className="relative">
-                                                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center animate-bounce">
-                                                    <MessageSquare className="w-8 h-8 text-primary " />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <h2 className="text-2xl font-bold">Welcome to Chatty!</h2>
-                                        <p className="text-base-content/60">
-                                            Select a conversation from the sidebar to start chatting
-                                        </p>
+                                            );
+                                        })}
                                     </div>
-                                </div>
-                            )}
+                                ) : (
+                                    <div className="w-full flex flex-1 flex-col items-center justify-center p-16 bg-base-100/50">
+                                        <div className="max-w-md text-center space-y-6">
+                                            <div className="flex justify-center gap-4 mb-4">
+                                                <div className="relative">
+                                                    <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center animate-bounce">
+                                                        <MessageSquare className="w-8 h-8 text-primary " />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <h2 className="text-2xl font-bold">Welcome to Chatty!</h2>
+                                            <p className="text-base-content/60">
+                                                Select a conversation from the sidebar to start chatting
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
 
                             {activeUser?.username && <div className="mt-4 flex flex-col gap-x-2">
                                 {/* 👇 Typing indicator */}
@@ -645,17 +783,35 @@ const MessagesTab = () => {
                                     </div>
                                 )}
 
+                                {imageUrl && (
+                                    <div className="relative mt-2">
+                                        <img
+                                            src={imageUrl}
+                                            alt="preview"
+                                            className="max-w-full max-h-40 rounded-lg border border-gray-300"
+                                        />
+                                        <button
+                                            onClick={() => setImageUrl("")}
+                                            className="absolute top-1 right-1 bg-white text-gray-600 hover:text-red-500 rounded-full p-1 shadow"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                )}
                                 <div className="flex  items-center gap-1">
                                     <input
                                         type="text"
+                                        // disabled={imageUrl}
                                         value={messageInput}
                                         onChange={(e) => {
                                             setMessageInput(e.target.value);
                                             // handleTyping();
                                         }}
-                                        placeholder="Type a message..."
+                                        placeholder={imageUrl ? ("only send image...") : `Type a message...`}
                                         className="flex-1 md:px-4 md:py-2 px-1.5 py-1 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-400 outline-none transition"
                                     />
+
+
 
                                     <button
                                         onClick={handleSendMessage}
@@ -664,10 +820,9 @@ const MessagesTab = () => {
                                         <Send size={19} />
                                     </button>
 
-                                    <FileUpload
-                                        fileType="image"
-                                        onSuccess={(res) => setValue("image", res.url)}
-                                    />
+                                    <UploadOptions onUpload={(url) => setImageUrl(url)} />
+
+
                                 </div>
 
                             </div>}

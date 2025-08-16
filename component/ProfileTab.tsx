@@ -1,6 +1,6 @@
 import { getUser } from "@/hooks/useUser";
 import { Eye, Heart, MapPin, UserCheck2, Users, Video } from "lucide-react"
-import { Image } from "@imagekit/next";
+import { Image } from "@imagekit/next"; 
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import Loader from "./Loader";
@@ -106,7 +106,7 @@ const ProfileTab = () => {
                 <div className="h-16 w-16 overflow-hidden rounded-full border-4 border-white/60 shadow-md sm:h-20 sm:w-20 lg:h-24 lg:w-24">
                   <Image
                     urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
-                    src={userInfo?.profilePic}
+                    src={userInfo?.profilePic || ""}
                     alt="profile"
                     width={96}
                     height={96}

@@ -70,6 +70,7 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
         {
             $group: {
                 _id: '$otherUserDetails._id',
+                profilePic:{$first:"$otherUserDetails.profilePic"},
                 username: { $first: '$otherUserDetails.username' },
                 unreadCount: { $sum: '$isUnread' },
                 latestMessageTime: { $max: '$latestMessageTime' } // Get most recent message time
@@ -80,9 +81,13 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
             $project: {
                 _id: 0,
                 userId: '$_id',
+                profilePic:1,
                 username: 1,
+                // profilePic:"$profilePic",
                 unreadCount: 1,
-                latestMessageTime: 1
+                latestMessageTime: 1,
+                // profilePic: "$otherUserDetails.profilePic", // ✅ Add this line
+                // otherUserDetails: 1
             }
         },
         // Sort by latest message time (newest first)

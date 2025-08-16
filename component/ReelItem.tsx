@@ -198,7 +198,7 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
 
                   <Image
                     urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
-                    src={reel.owner[0].profilePic}
+                    src={reel.owner[0]?.profilePic || ""}
                     width={500}
                     height={500}
                     alt="Picture of the author"

@@ -103,6 +103,13 @@ class SocketService {
         }
       });
 
+      //* COME USER SIDE BAR :
+
+      socket.on("event:checkUser",(data)=>{
+        // console.log("data",data)
+        io.to(data?.receiver).emit("get:user",data);
+      })
+
       //* DELETE MESSAGE :
 
       socket.on("event:delete", async ({sender,messageId,reciever} : any) => {
@@ -116,6 +123,11 @@ class SocketService {
           console.error("Message delete failed:", error.message);
         }
       });
+
+      socket?.on("event:seen",({reciever,sender})=>{
+        console.log("first",reciever)
+        io.to(reciever).emit("event:saw",(sender));
+      })
 
 
 
