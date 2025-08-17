@@ -84,12 +84,14 @@ class SocketService {
 
       socket.on("event:message", async (data) => {
         // console.log(data)
-        const { sender, receiver, message } = data;
+        const { sender, receiver, message,customId } = data;
         // console.log(data)
         const payload = {
           sender:sender,
           receiver: receiver,
           message,
+          customId
+
         };
 
         io.to(receiver).emit("get:messages", data);
@@ -112,19 +114,19 @@ class SocketService {
 
       //* DELETE MESSAGE :
 
-      socket.on("event:delete", async ({sender,messageId,reciever} : any) => {
+      socket.on("event:delete", async ({sender,messageId,reciever,customId} : any) => {
         // console.log(messageId)
         socket.to(reciever).emit("event:deleted", { messageId });
         try {
           await DBConnect();
-          await Message.findOneAndDelete({ sender: sender });
+          await Message.findOneAndDelete({ sender: sender,receiver:reciever,customId });
           console.log(`Message with ID ${messageId} deleted.`);
         } catch (error: any) {
           console.error("Message delete failed:", error.message);
         }
       });
 
-      socket?.on("event:seen",({reciever,sender})=>{
+      socket?.on("event:seen",({reciever,sender,customId})=>{
         console.log("first",reciever)
         io.to(reciever).emit("event:saw",(sender));
       })

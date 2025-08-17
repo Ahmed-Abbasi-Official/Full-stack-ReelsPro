@@ -195,6 +195,7 @@ const MessagesTab = () => {
             _id: crypto.randomUUID(), // Temporary ID for client-side
             sender: user?._id,
             receiver: activeUser._id,
+            customId:crypto.randomUUID(),
             message: messageInput,
             updatedAt: new Date(),
             createdAt: new Date(),
@@ -323,7 +324,7 @@ const MessagesTab = () => {
         })
 
         socket?.on("event:deleted", (deletedMessageId: any) => {
-            console.log("first", deletedMessageId)
+            // console.log("first", deletedMessageId)
             setMessages((prev) => {
                 const newMap = new Map(prev);
                 newMap.delete(deletedMessageId?.messageId); // directly delete using messageId
@@ -382,12 +383,13 @@ const MessagesTab = () => {
 
 
 
-    const handleDelete = async (messageId: string) => {
+    const handleDelete = async (messageId: string,customId:string) => {
         // console.log("first",messageId)
         const payload = {
             messageId,
             sender: user?._id,
-            reciever: activeUser?._id
+            reciever: activeUser?._id,
+            customId
         }
         // console.log(payload)
         socket?.emit("event:delete", payload);
@@ -761,7 +763,7 @@ const MessagesTab = () => {
                                                                         </button> */}
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    handleDelete(msg?._id);
+                                                                                    handleDelete(msg?._id,msg?.customId);
                                                                                     setMenuMessageId(null);
                                                                                 }}
                                                                                 className="rounded-md cursor-pointer w-full flex gap-1 items-center px-4 py-2 text-left text-sm transition-colors hover:bg-[#9c3e41]">

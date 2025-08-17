@@ -13,6 +13,7 @@ export interface IMessage extends Document {
   reportedBy: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
+  customId: string;
 }
 
 const messageSchema = new Schema<IMessage>(
@@ -23,6 +24,11 @@ const messageSchema = new Schema<IMessage>(
     status: { type: String, enum: ['sent', 'delivered', 'read'], default: 'sent' },
     isRead: { type: Boolean, default: false },
     reportedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    customId: {
+      type: String,
+      required: true,
+      index: true
+    }
   },
   { timestamps: true }
 );
