@@ -116,7 +116,7 @@ export const VideoProvider = ({ children }: { children: ReactNode }) => {
         },
         onSuccess(data:any,variables:any){
             console.log(data)
-            queryClient.invalidateQueries(["comment",variables.videoId]);
+            queryClient.invalidateQueries({ queryKey: ["comment", variables.videoId] });
         }
     })
 
@@ -130,7 +130,7 @@ export const VideoProvider = ({ children }: { children: ReactNode }) => {
                 return res.data;
             },
             onSuccess(data,variables){
-                 queryClient.invalidateQueries(["comment",variables.videoId])
+                 queryClient.invalidateQueries({ queryKey: ["comment", variables.videoId] })
             }
         }
     )
@@ -145,7 +145,7 @@ export const VideoProvider = ({ children }: { children: ReactNode }) => {
                 return res.data;
             },
             onSuccess(data){
-                queryClient.invalidateQueries(["playlist"])
+                queryClient.invalidateQueries({ queryKey: ["playlist"] })
             }
         }
     )
@@ -158,7 +158,7 @@ export const VideoProvider = ({ children }: { children: ReactNode }) => {
                 const res = await axios.post('/api/saved-video',data)
                 return res.data;
             },onSuccess(data:any,variables:any){
-                queryClient.invalidateQueries(["playlist",variables?.videoId])
+                queryClient.invalidateQueries({ queryKey: ["playlist", variables?.videoId] })
             }
         }
     )
