@@ -2,30 +2,30 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { type ChangeEvent, useEffect, useState } from "react"
-import { useDebounceCallback } from "usehooks-ts"
+import {  useEffect, useState } from "react"
+// import { useDebounceCallback } from "usehooks-ts"
 import { type SubmitHandler, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { registerSchema } from "@/schemas/registerSchema"
-import { Bookmark, Check, Eye, EyeOff, Heart, Loader2, LoaderCircle, MessageCircle, Play, Share2,Share } from "lucide-react"
+import { Bookmark, Eye, EyeOff, Heart, Loader2, LoaderCircle, MessageCircle, Play, Share2 } from "lucide-react"
 import { type UniqueUsernameError, useUser } from "@/hooks/useUser"
 import type { AxiosError } from "axios"
-import { generateAvatar } from "@/lib/avatar"
-import FileUpload from "@/app/component/FileUpload"
-import { upload } from "@imagekit/next"
+// import { generateAvatar } from "@/lib/avatar"
+// import FileUpload from "@/app/component/FileUpload"
+// import { upload } from "@imagekit/next"
 import { uploadGeneratedAvatar } from "@/lib/uploadGeneratedAvatar"
 import { toast } from "react-toastify"
 import Image from "next/image"
 import video from '../../../public/vertical-video-thumbnail.png'
 
 // Define the type for form values based on your schema
-type FormValues = {
-  username: string
-  email: string
-  password: string
-  // If registerSchema includes confirmPassword, uncomment this:
-  // confirmPassword: string;
-}
+// type FormValues = {
+//   username: string
+//   email: string
+//   password: string
+//   // If registerSchema includes confirmPassword, uncomment this:
+//   // confirmPassword: string;
+// }
 
 const RegisterPage = () => {
   const [username, setusername] = useState("")

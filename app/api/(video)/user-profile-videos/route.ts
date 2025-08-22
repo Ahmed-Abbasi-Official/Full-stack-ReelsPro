@@ -71,6 +71,7 @@ export const GET = asyncHandler(async (req: NextRequest): Promise<NextResponse> 
 
   // Step 2: Get videos of the user
   const videos = await Video.find({ user: new ObjectId(userId) });
+  console.log(videos)
 
   return nextResponse(200, "User data fetched successfully", {
     followers: followersCount,

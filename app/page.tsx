@@ -1,6 +1,6 @@
 "use client" // This component needs to be a Client Component to use useSearchParams
 
-import { useSearchParams } from "next/navigation" // [^1]
+import { useRouter, useSearchParams } from "next/navigation" // [^1]
 import MainSidebar from "@/component/main-sidebar"
 import HomeTab from "@/component/HomeTab"
 import ProfileTab from "@/component/ProfileTab"
@@ -8,13 +8,16 @@ import UserProfilePage from "@/component/SingleVideo"
 import CreateTab from "@/component/CreateTab"
 import { useState } from "react"
 import { Play, Sparkles, TrendingUp, Upload, Users, Video } from "lucide-react"
-import CreateVideoModal from "@/component/CreateTab"
 import MessagesTab from "@/component/MessagesTab"
+import { signOut, useSession } from "next-auth/react"
+
 
 export default function HomePage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const searchParams = useSearchParams()
   const currentSection = searchParams.get("section") || "home" // Default to 'home'
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   // Function to render content based on the current section
   const renderContent = () => {
@@ -27,23 +30,37 @@ export default function HomePage() {
           // </div>
           <HomeTab />
         )
-      case "notifications":
-        return (
-          <div className="p-4">
-            <h2 className="text-2xl font-semibold text-gray-800">Notifications</h2>
-            <p className="mt-2 text-gray-600">You have 10 new notifications!</p>
-          </div>
-        )
+      // case "notifications":
+      //   return (
+      //     <div className="p-4">
+      //       <h2 className="text-2xl font-semibold text-gray-800">Notifications</h2>
+      //       <p className="mt-2 text-gray-600">You have 10 new notifications!</p>
+      //     </div>
+      //   )
       case "messages":
         return (
-          // <div className="p-4">
-          //   <h2 className="text-2xl font-semibold text-gray-800">Messages</h2>
-          //   <p className="mt-2 text-gray-600">Check your messages here.</p>
-          // </div>
-          <MessagesTab/>
+          (status === "unauthenticated") ? (
+            <>
+            <div className="p-4">
+            <h2 className="text-2xl font-semibold text-gray-800">Messages</h2>
+            <p className="mt-2 text-gray-600">You must login First.</p>
+             <button
+                  onClick={() => {
+                    router.push("/login")
+                  }}
+                  className="inline-flex items-center space-x-3 px-8 py-2 mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold text-lg"
+                >Login</button>
+          </div>
+
+            </>
+          ):(
+
+            <MessagesTab />
+          )
+          
         )
       case "create":
-         return (
+        return (
           <div className="min-h-full p-6">
             {/* Hero Section */}
             <div className="text-center mb-12">
@@ -101,7 +118,15 @@ export default function HomePage() {
             {/* Create Video Button */}
             <div className="text-center mb-12">
               <button
-                onClick={() => setIsCreateModalOpen(true)}
+
+                onClick={() => {
+                  status === "unauthenticated" && (
+                    router.push("/login")
+                  )
+                  status === "authenticated" && (
+                    setIsCreateModalOpen(true)
+                  )
+                }}
                 className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold text-lg"
               >
                 <Upload className="w-6 h-6" />
@@ -174,11 +199,24 @@ export default function HomePage() {
         )
       case "profile":
         return (
-          // <div className="p-4">
-          //   <h2 className="text-2xl font-semibold text-gray-800">Profile Settings</h2>
-          //   <p className="mt-2 text-gray-600">Manage your profile information.</p>
-          // </div>
-          <ProfileTab />
+          (status === "unauthenticated") ? (
+            <>
+              <div className="p-4">
+                <h2 className="text-2xl font-semibold text-gray-800">Profile Settings</h2>
+                <p className="mt-2 text-gray-600">You must Login First.</p>
+                <button
+                  onClick={() => {
+                    router.push("/login")
+                  }}
+                  className="inline-flex items-center space-x-3 px-8 py-2 mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold text-lg"
+                >Login</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <ProfileTab />
+            </>
+          )
         )
       case "single-video":
         return (
@@ -186,14 +224,14 @@ export default function HomePage() {
           //   <h2 className="text-2xl font-semibold text-gray-800">SingleVideo</h2>
           //   <p className="mt-2 text-gray-600">Your saved videos for later viewing.</p>
           // </div>
-          <UserProfilePage />
+          <>
+          <UserProfilePage/>
+          </>
+          
         )
       case "logout":
         return (
-          <div className="p-4">
-            <h2 className="text-2xl font-semibold text-gray-800">Logging Out...</h2>
-            <p className="mt-2 text-gray-600">You will be redirected shortly.</p>
-          </div>
+          signOut({ callbackUrl: "/login" })
         )
       default:
         return (

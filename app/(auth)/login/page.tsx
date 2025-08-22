@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { type SubmitHandler, useForm } from "react-hook-form"
 import { toast } from "react-toastify" // Assuming ToastContainer is set up in layout.tsx
-import { Bookmark, Check, Eye, EyeOff, Heart, Loader2, LoaderCircle, MessageCircle, Play, Share2 } from "lucide-react"
+import { Bookmark,  Eye, EyeOff, Heart, Loader2, MessageCircle, Play, Share2 } from "lucide-react"
 import video from '../../../public/vertical-video-thumbnail.png'
 
 import Image from "next/image"

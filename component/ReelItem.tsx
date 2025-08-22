@@ -64,6 +64,10 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
 
   const handleSubscribed = (channelId: any, e: any) => {
     togglePlay()
+    if (!session) {
+      toast.error("You must Login first!")
+      return router.push('/login')
+    }
     setIsSub(!isSub)
     const data: any = {
       channelId,

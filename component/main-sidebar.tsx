@@ -8,10 +8,10 @@ import { Video, Bell, MessageSquare, Plus, List, User, LogOut, X, Menu } from "l
 // Define navigation items with their section names and icons
 const navItems = [
   { name: "Home", section: "videos", icon: Video },
-  { name: "Notifications", section: "notifications", icon: Bell, badge: 10 },
+  // { name: "Notifications", section: "notifications", icon: Bell, badge: 10 },
   { name: "Messages", section: "messages", icon: MessageSquare },
   { name: "Create", section: "create", icon: Plus },
-  { name: "Watch Later", section: "watch-later", icon: List },
+  // { name: "Watch Later", section: "watch-later", icon: List },
   { name: "Profile", section: "profile", icon: User },
   // { name: "Single-Video", section: "single-video", icon: User },
 ]
@@ -62,11 +62,6 @@ export default function MainSidebar() {
                 >
                   <item.icon className="w-6 h-6" />
                   <span>{item.name}</span>
-                  {item.badge && (
-                    <span className="absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
                 </Link>
               )
             })}

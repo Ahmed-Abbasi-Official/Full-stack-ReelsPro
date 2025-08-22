@@ -11,11 +11,7 @@ import { UniqueUsernameError } from "@/hooks/useUser"
 import { AxiosError } from "axios"
 import Loader from "./Loader"
 
-interface UserProfilePageProps {
-  params: {
-    username: string
-  }
-}
+
 
 export default function UserProfilePage() {
   let username:any  = ""
@@ -25,8 +21,8 @@ export default function UserProfilePage() {
   const userId:any = searchParams.get('userId'); 
   const u:any = searchParams.get('username'); 
   const router = useRouter();
+  const {data:session,status}=useSession();
   
-  console.log(userId)
   username=u;
   useEffect(()=>{
     getSingleUsers?.mutate(userId,{
@@ -38,12 +34,38 @@ export default function UserProfilePage() {
     });
   },[userId])
 
+  useEffect(() => {
+    if (getSingleUsers?.isError) {
+      router.push('/')
+    }
+  }, [getSingleUsers?.isError, router])
+
   if(getSingleUsers?.isPending){
     return <Loader/>
   }
-  if(getSingleUsers?.isError){
-    return router.push('/')
+  // if(getSingleUsers?.isError){
+  //   return router.push('/')
+  // }
+
+  if(status==="unauthenticated"){
+     return (
+      <>
+            <div className="p-4">
+            <h2 className="text-2xl font-semibold text-gray-800">User Profile</h2>
+            <p className="mt-2 text-gray-600">You must login First.</p>
+             <button
+                  onClick={() => {
+                    router.push("/login")
+                  }}
+                  className="inline-flex items-center space-x-3 px-8 py-2 mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold text-lg"
+                >Login</button>
+          </div>
+
+            </>
+     )
   }
+
+  
 
   // Placeholder data - in a real app, these would come from an API
   const userAvatar = getSingleUsers?.data?.data.user?.profilePic;

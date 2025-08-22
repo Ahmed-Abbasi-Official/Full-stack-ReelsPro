@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import Loader from "./Loader";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface ProfileData {
 
@@ -27,6 +28,7 @@ const ProfileTab = () => {
     darkMode: false,
     twoFactor: false,
   })
+  
 
   const [savedSettings, setSavedSettings] = useState(tempSetting);
   const toggleSetting = (key: keyof typeof tempSetting) => {
@@ -35,28 +37,21 @@ const ProfileTab = () => {
       [key]: !prev[key]
     }));
   };
-
-
-
-
   const [userInfo, setUserInfo] = useState<ProfileData>({} as ProfileData);
   const [location, setLocation] = useState('');
   const { user } = getUser();
+  
 
-
-
-  // if(user?.isPending)<Loader/>
-  // const handleSave = () => {
-  //     setSavedSettings(tempSetting);
-  //     setProfileMode(savedSettings.isPublic ? "private" : "public");
-  //     setThemeMode(savedSettings.darkMode ? "light" : "dark");
-  //     toast.success("Updated changes successfully")
+  // if(status === "unauthenticated"){
+  //   return <p>must</p>
   // }
+  
 
+ 
 
+  
   useEffect(() => {
     if (user?.isSuccess) {
-      console.log(user?.data)
       setUserInfo(user?.data?.data[0])
     }
   }, [user?.data?.data])
@@ -92,6 +87,7 @@ const ProfileTab = () => {
 
 
   // console.log(userInfo, "user:-");
+
 
   return (
     <div className="p-6">
