@@ -4,11 +4,12 @@ import axios, { AxiosResponse } from "axios";
 import React, { useContext, createContext, ReactNode, useMemo } from "react";
 
 interface MessagesContextType {
-    userSearch:UseMutationResult<AxiosResponse<any,any>,Error,string,unknown>
-    sideBarUsers:UseMutationResult<AxiosResponse<any,any>,Error,void,unknown>
-    getMessages:UseMutationResult<AxiosResponse<any,any>,Error,void,unknown>
-    handleSeeen:UseMutationResult<AxiosResponse<any,any>,Error,void,unknown>
-};
+  userSearch: UseMutationResult<AxiosResponse<any, any>, Error, string, unknown>;
+  sideBarUsers: UseMutationResult<AxiosResponse<any, any>, Error, void, unknown>;
+  getMessages: UseMutationResult<AxiosResponse<any, any>, Error, string, unknown>;
+  handleSeeen: UseMutationResult<AxiosResponse<any, any>, Error, void, unknown>;
+}
+
 
 
 const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
@@ -35,12 +36,12 @@ export const MessagesProviders = ({ children }: { children: ReactNode }) => {
 
     //* SEARCH USERS :
 
-    const userSearch = useMutation({
-        mutationFn: async (username) => {
-            const res = await axios.get(`/api/messages/user-searching?username=${username}`);
-            return res;
-        }
-    });
+    const userSearch = useMutation<AxiosResponse<any, any>, Error, string>({
+  mutationFn: async (username) => {
+    const res = await axios.get(`/api/messages/user-searching?username=${username}`);
+    return res;
+  }
+});
 
     //* GET SIDEBAR USERS :
 
@@ -64,13 +65,12 @@ export const MessagesProviders = ({ children }: { children: ReactNode }) => {
         }
     })
 
-    const handleSeeen = useMutation({
-        mutationFn:async()=>{
-            console.log("asd")
-            const res = await axios.get(`/api/messages/get-seen`);
-                        console.log(res?.data);
-        }
-    })
+   const handleSeeen = useMutation<AxiosResponse<any, any>, Error, void>({
+  mutationFn: async () => {
+    const res = await axios.get(`/api/messages/get-seen`);
+    return res;
+  }
+});
 
     return (
         <MessagesContext.Provider value={{  userSearch  , sideBarUsers,getMessages,handleSeeen}}>
