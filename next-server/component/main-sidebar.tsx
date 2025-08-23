@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation" // [^1]
 import { Video, Bell, MessageSquare, Plus, List, User, LogOut, X, Menu } from "lucide-react"
+import { useSession } from "next-auth/react"
 
 // Define navigation items with their section names and icons
 const navItems = [
@@ -20,6 +21,7 @@ export default function MainSidebar() {
   const [showSidebar, setShowSidebar] = useState(false)
   const searchParams = useSearchParams()
   const currentSection = searchParams.get("section") || "home" // Default to 'home' if no section param
+  const { data: session, status } = useSession();
 
   return (
     <>
@@ -61,7 +63,7 @@ export default function MainSidebar() {
                   onClick={() => setShowSidebar(false)} // Close sidebar on link click for mobile
                 >
                   <item.icon className="w-6 h-6" />
-                  <span>{item.name}</span>
+                  <span>{item?.name}</span>
                 </Link>
               )
             })}
@@ -74,7 +76,7 @@ export default function MainSidebar() {
             onClick={() => setShowSidebar(false)}
           >
             <LogOut className="w-6 h-6" />
-            <span>Logout</span>
+            <span>{status === "authenticated"?("Logout"):""}</span>
           </Link>
           <button className="w-full mt-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
             <span className="font-bold">N</span>
