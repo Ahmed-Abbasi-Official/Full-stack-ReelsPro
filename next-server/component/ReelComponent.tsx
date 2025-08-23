@@ -10,7 +10,7 @@ export default function ReelComponent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const { getAllVideos } = useVideos();
-  console.log(JSON.stringify(getAllVideos, null, 2));
+  console.log(getAllVideos?.data)
 
 
   const reels =

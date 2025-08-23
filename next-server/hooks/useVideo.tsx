@@ -23,8 +23,6 @@ export function useVideos() {
     queryKey: ["videos"],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await axios.get(`/api/video?page=${pageParam}&limit=5`);
-      console.log(res?.data)
-      
       return res.data; // includes { data: { videos: [], hasMore: true }, ... }
     },
     initialPageParam: 1,

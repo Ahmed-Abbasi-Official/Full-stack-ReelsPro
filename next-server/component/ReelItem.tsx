@@ -214,7 +214,7 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
                   href={`/?section=single-video&userId=${reel?.owner[0]?._id}&username=${reel?.owner[0]?.username}`}
                 >
 
-                  <span className="text-white font-bold text-base sm:text-lg">@{reel.owner[0].username}</span>
+                  <span className="text-white font-bold text-base sm:text-lg">@{reel?.owner[0]?.username || "username"}</span>
                 </Link>
                   {/* {reel.user && (
                     <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center ml-1">
@@ -229,9 +229,9 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
                 </button>
               </div>
               {/* Title */}
-              <p className="text-white text-sm sm:text-base leading-relaxed mb-2 text-shadow-sm">{reel.title}</p>
+              <p className="text-white text-sm sm:text-base leading-relaxed mb-2 text-shadow-sm">{reel?.title}</p>
               {/* DESCRIPTION */}
-              <p className="text-white text-[8px] sm:text-[12px] leading-relaxed mb-2 text-shadow-sm">{reel.description}</p>
+              <p className="text-white text-[8px] sm:text-[12px] leading-relaxed mb-2 text-shadow-sm">{reel?.description}</p>
             </div>
             {/* Right Actions */}
             <div className="flex flex-col items-center space-y-4 sm:space-y-6 z-20">
@@ -253,14 +253,14 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
                 <div className="bg-white/20 rounded-full p-2 sm:p-3 group-hover:bg-white/30 transition-colors">
                   <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
-                <span className="text-white text-xs sm:text-sm font-medium mt-1">{formatNumber(reel.TotalComment)}</span>
+                <span className="text-white text-xs sm:text-sm font-medium mt-1">{formatNumber(reel?.TotalComment)}</span>
               </button>
               {/* Share */}
               <button className="flex flex-col items-center group">
                 <div className="bg-white/20 rounded-full p-2 sm:p-3 group-hover:bg-white/30 transition-colors">
                   <Send className="w-6 h-6 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <span className="text-white text-xs sm:text-sm font-medium mt-1">{formatNumber(reel.shares)}</span>
+                <span className="text-white text-xs sm:text-sm font-medium mt-1">{formatNumber(reel?.shares)}</span>
               </button>
               {/* Bookmark */}
               <button onClick={toggleBookmark} className="flex flex-col items-center cursor-pointer group">
