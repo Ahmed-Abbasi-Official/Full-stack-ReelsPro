@@ -8,7 +8,6 @@
     "build": "next build",
     "seed": "node app/api/seed.ts",
     "start": "next start",
-    "lint": "next lint",
     "worker": "cross-env NODE_OPTIONS=--loader=ts-node/esm node workers/message.worker.ts"
   },
   "dependencies": {
