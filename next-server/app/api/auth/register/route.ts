@@ -42,13 +42,12 @@ export async function POST(request: NextRequest) {
 
         const existingUsername = await User.findOne({ username });
 
-        if (existingUsername) {
+        if (existingUsername && existingUsername?.isVerified) {
             
             return nextError(409, "username already exist")
         }
 
-        console.log("first")
-
+        // console.log("first")
         // CHECKING FOR EMAIL AND CREATE CODE ;
 
         const existingEmail = await User.findOne({ email });

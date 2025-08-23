@@ -95,17 +95,17 @@ const RegisterPage = () => {
 
   //* ONSUBMIT :
   const onSubmit: SubmitHandler<any> = async (data) => {
-    console.log(data)
-    // setLoading(true)
-    const avatarResponse = await uploadGeneratedAvatar(username);
+    // console.log(data)
+    setLoading(true)
+    const avatarResponse:any = await uploadGeneratedAvatar(username);
     // console.log(avatarResponse)
-    const imageUrl = avatarResponse.url;
+    const imageUrl = avatarResponse.url!;
     if (imageUrl) {
       setLoading(false)
       const newData = {
         ...data, profilePic: imageUrl
       }
-      console.log(newData)
+      // console.log(newData)
       signUpUser.mutate(
         { username, ...newData },
         {
@@ -256,7 +256,7 @@ const RegisterPage = () => {
               </div>
 
               <button type="submit" disabled={signUpUser?.isPending  || !userUnique?.isSuccess} className="cursor-pointer w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-[16px]">
-                {(signUpUser?.isPending  ) ? <div className="flex justify-center gap-3"><Loader2 className="w-6 h-6 animate-spin" />Creating your account...</div> : 'Start Creating Amazing Reels'}
+                {(signUpUser?.isPending || loading  ) ? <div className="flex justify-center gap-3"><Loader2 className="w-6 h-6 animate-spin" />Creating your account...</div> : 'Start Creating Amazing Reels'}
               </button>
             </form>
 

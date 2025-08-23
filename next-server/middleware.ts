@@ -52,7 +52,8 @@ export default withAuth({
       const isPublic =
         publicRoutes.includes(pathname) ||
         pathname.startsWith('/api/auth') ||
-        pathname.startsWith('/.well-known');
+        pathname.startsWith('/.well-known')||
+        pathname.startsWith('/verify-otp');
 
       if (isPublic) return true;
 
@@ -63,5 +64,8 @@ export default withAuth({
 })
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-}
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|api/imagekit-auth).*)",
+  ],
+};
+
