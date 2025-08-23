@@ -16,9 +16,7 @@ export default withAuth(
           pathname === '/login' ||
           pathname === '/register' ||
           pathname.startsWith("/.well-known") ||
-          pathname === '/' ||
-          pathname === '/api/video' ||
-          pathname === '/reels' 
+          pathname === '/'
         ) {
           return true;
         }
