@@ -64,7 +64,7 @@ const LoginPage = () => {
         const email: string = data.email
         const password: string = data.password
 
-        console.log(data)
+        // console.log(data)
         setIsLoading(true)
 
         const res = await signIn("credentials", {
