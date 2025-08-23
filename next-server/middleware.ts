@@ -44,6 +44,7 @@ export default withAuth({
       // Public routes
       const publicRoutes = [
         '/',
+        '/api/video',
         '/login',
         '/register',
       ];

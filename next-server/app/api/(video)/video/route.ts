@@ -165,6 +165,7 @@ export async function GET(req: NextRequest) {
 
     const totalVideos = await Video.countDocuments(); // or use estimatedDocumentCount()
     const hasMore = skip + limit < totalVideos;
+    console.log(totalVideos)
 
     return NextResponse.json(new ApiResponse(200, "Fetched", {
       videos,
