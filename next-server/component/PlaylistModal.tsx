@@ -72,7 +72,7 @@ export default function PlaylistModal({ isOpen, onClose, reelId }: PlaylistModal
     const data:any= {playlistName:newPlaylistName}
     creatingPlaylist.mutate(data,{
       onSuccess(data){
-        toast.success(data?.message);
+        // toast.success(data?.message);
       },
       onError(data){
          toast.error((data as AxiosError<UniqueUsernameError>)?.response?.data?.message)
@@ -91,7 +91,7 @@ export default function PlaylistModal({ isOpen, onClose, reelId }: PlaylistModal
     }
     saveToggle.mutate(data,{
       onSuccess(data:any){
-        toast.success(data?.message);
+        // toast.success(data?.message);
         onClose()
       },
       onError(data:any){

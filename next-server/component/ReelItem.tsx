@@ -75,7 +75,7 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
     }
     follow.mutate(data, {
       onSuccess(data: any) {
-        toast.success(data?.message)
+        // toast.success(data?.message)
       }, onError(data: any) {
         setIsSub(false)
         toast.error((data as AxiosError<UniqueUsernameError>)?.response?.data?.message)
@@ -126,7 +126,7 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
     likeToggle.mutate(data, {
       onSuccess(data: any) {
         // console.log(data)
-        toast.success(data?.message)
+        // toast.success(data?.message)
       },
       onError(data: any) {
         console.log(data)

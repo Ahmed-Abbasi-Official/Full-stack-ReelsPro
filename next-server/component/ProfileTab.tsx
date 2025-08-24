@@ -100,7 +100,9 @@ const ProfileTab = () => {
             <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 lg:space-x-6">
               <div className="flex-shrink-0">
                 <div className="h-16 w-16 overflow-hidden rounded-full border-4 border-white/60 shadow-md sm:h-20 sm:w-20 lg:h-24 lg:w-24">
-                  <Image
+                 {
+                  userInfo?.profilePic && (
+                     <Image
                     urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
                     src={userInfo?.profilePic || ""}
                     alt="profile"
@@ -108,6 +110,8 @@ const ProfileTab = () => {
                     height={96}
                     className="h-full w-full object-cover"
                   />
+                  )
+                 }
                 </div>
               </div>
               <div className="flex-1 text-center sm:text-left">
@@ -133,11 +137,15 @@ const ProfileTab = () => {
               <div className="space-y-4 sm:space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                  <input type="text" value={userInfo?.username?.slice(0, 1).toUpperCase() + userInfo?.username?.slice(1)} className="w-full px-3 py-2 border border-white/50 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-transparent bg-white/70 backdrop-blur-sm text-gray-900 text-sm sm:text-base outline-none" />
+                  <p   className="w-full px-3 py-2 border border-white/50 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-transparent bg-white/70 backdrop-blur-sm text-gray-900 text-sm sm:text-base outline-none" >
+                  {userInfo?.username?.slice(0, 1).toUpperCase() + userInfo?.username?.slice(1)}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <input type="email" value={userInfo?.email} className="w-full px-3 py-2 border border-white/50 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-transparent bg-white/70 backdrop-blur-sm text-gray-900 text-sm sm:text-base outline-none" />
+                  <p   className="w-full px-3 py-2 border border-white/50 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-transparent bg-white/70 backdrop-blur-sm text-gray-900 text-sm sm:text-base outline-none" >
+                  {userInfo?.email}
+                  </p>
                 </div>
               </div>
             </div>
@@ -168,7 +176,7 @@ const ProfileTab = () => {
       {/* Stats */}
       <div className="mt-4 sm:mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: "Posts", value: userInfo?.videos?.length, color: "text-purple-600", icon: <Video className="h-4 w-4" /> },
+          { label: "Posts", value: userInfo?.videos?.length || 0, color: "text-purple-600", icon: <Video className="h-4 w-4" /> },
           { label: "Followers", value: userInfo?.subscribersCount, color: "text-green-600", icon: <Users className="h-4 w-4" /> },
           { label: "Following", value: userInfo?.subscribersToCount, color: "text-pink-600", icon: <UserCheck2 className="h-4 w-4" /> },
           { label: "Likes", value: userInfo?.totalLikesCount || 0, color: "text-orange-600", icon: <Heart className="h-4 w-4" /> }

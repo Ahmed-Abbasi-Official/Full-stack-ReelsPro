@@ -27,7 +27,7 @@ export default function UserProfilePage() {
   useEffect(()=>{
     getSingleUsers?.mutate(userId,{
       onSuccess(data:any){
-        toast.success(data?.message)
+        // toast.success(data?.message)
       },onError(data:any){
         toast.error((data as AxiosError<UniqueUsernameError>)?.response?.data?.message)
       }

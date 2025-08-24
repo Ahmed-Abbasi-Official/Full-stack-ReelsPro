@@ -56,7 +56,7 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
     }
     deleteComment.mutate(data, {
       onSuccess(data) {
-        toast.success(data?.message)
+        // toast.success(data?.message)
       },
       onError(data) {
         toast.error((data as AxiosError<UniqueUsernameError>)?.response?.data?.message)
@@ -154,7 +154,7 @@ export default function CommentModal({ isOpen, onClose, reelId, commentCount, po
     }
     sendComment.mutate(data, {
       onSuccess(data) {
-        toast.success(data?.message)
+        // toast.success(data?.message)
       },
       onError(data) {
         toast.error((data as AxiosError<UniqueUsernameError>)?.response?.data?.message)
