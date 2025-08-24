@@ -14,6 +14,7 @@ interface VideoContextType {
     getSingleUsers: UseMutationResult<any, Error, void, unknown>
     createVideo: UseMutationResult<any, Error, void, unknown>
     getSingleVideo: UseMutationResult<any, Error, string, unknown>
+    sendVideo: UseMutationResult<any, Error, any, unknown>
 }
 
 //* GET ALL VIDEOS :
@@ -36,6 +37,21 @@ export function useVideos() {
   return {
     getAllVideos,
   };
+}
+
+//* GET ALL USERS FOR SHARING:
+
+export function useGetShareUsers(){
+     const getShareUsers = useQuery({
+    queryKey: ["share"],
+    queryFn: async () => {
+      const res = await axios.get(`/api/share`);
+      return res.data;
+    },
+    enabled:false
+  });
+
+  return { getShareUsers };
 }
 
 
@@ -209,10 +225,20 @@ export const VideoProvider = ({ children }: { children: ReactNode }) => {
         }
     )
 
+    //* SEND VIDEO :
+
+    const sendVideo=useMutation({
+        mutationFn:async(data)=>{
+            console.log(data)
+            const res = await axios.post('/api/share',data)
+            return res?.data;
+        }
+    })
+
     
     
     return (
-        <VideoContext.Provider value={{ getAllVideos , likeToggle, sendComment, deleteComment, creatingPlaylist, saveToggle, follow, getSingleUsers, getSingleVideo, createVideo  }}>
+        <VideoContext.Provider value={{ getAllVideos , likeToggle, sendComment, deleteComment, creatingPlaylist, saveToggle, follow, getSingleUsers, getSingleVideo, createVideo, sendVideo  }}>
             {children}
         </VideoContext.Provider>
     )

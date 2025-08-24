@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import PlaylistModal from "./PlaylistModal"
 import Link from "next/link"
+import ShareModule from "./ShareModule"
 
 const formatNumber = (num: number): string => {
   if (typeof num !== 'number') return "0"
@@ -30,6 +31,7 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
   const [isMuted, setIsMuted] = useState(true)
   const [isLiked, setIsLiked] = useState(reel.isLiked)
   const [isBookmarked, setIsBookmarked] = useState(reel.isBookmarked)
+  const [isShare, setIsShare] = useState(false)
   const [likes, setLikes] = useState(reel.likes)
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false)
   const [isSub, setIsSub] = useState(false)
@@ -168,6 +170,18 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
   const closeBookmarkModal = () => {
     setIsBookmarked(false)
   }
+  const handleShare = ()=>{
+     togglePlay()
+    if (!session) {
+      toast.error("You must Login first!")
+      return router.push('/login')
+    }
+    setIsShare(!isShare)
+  }
+
+  const closeShare = ()=>{
+    setIsShare(false)
+  }
 
   return (
     <>
@@ -257,7 +271,9 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
               </button>
               {/* Share */}
               <button className="flex flex-col items-center group">
-                <div className="bg-white/20 rounded-full p-2 sm:p-3 group-hover:bg-white/30 transition-colors">
+                <div
+                onClick={handleShare}
+                className="bg-white/20 rounded-full p-2 sm:p-3 group-hover:bg-white/30 transition-colors">
                   <Send className="w-6 h-6 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <span className="text-white text-xs sm:text-sm font-medium mt-1">{formatNumber(reel?.shares)}</span>
@@ -304,6 +320,12 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
         isOpen={isBookmarked}
         onClose={closeBookmarkModal}
         reelId={reel?._id}
+      />
+
+      <ShareModule
+      isOpen={isShare}
+      onClose={closeShare}
+      videoUrl={reel?.videoUrl}
       />
 
     </>
