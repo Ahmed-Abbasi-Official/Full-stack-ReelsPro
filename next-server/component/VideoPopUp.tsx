@@ -32,10 +32,10 @@ export default function VideoModal({ isOpen, onClose, reel }: VideoModalProps) {
   useEffect(()=>{
     getSingleVideo.mutate(reel?._id!,{
         onSuccess(data:any){
-            console.log(data)
-            toast.success(data?.message)
+            // console.log(data)
+            // toast.success(data?.message)
         },onError(data:any){
-            console.log(data)
+            // console.log(data)
             toast.error((data as AxiosError<UniqueUsernameError>)?.response?.data?.message)
             return router.push(`/`)
         }
