@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { Verification_Email_Template } from './emailTemplate';
 
 
 
@@ -15,8 +16,8 @@ export const sendVerificationCode=async (email:string,code:string) => {
     from: 'Reels Pro',
     to: email,
     subject: "Hello ✔",
-    text: "Hello world?", // plain‑text body
-    html: code, // HTML body
+    text: "Hello world?",
+    html: Verification_Email_Template.replace("{verificationCode}",code), 
   });
 
   if(info)  

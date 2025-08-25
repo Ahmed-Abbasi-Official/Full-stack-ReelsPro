@@ -1,6 +1,6 @@
 "use client"
 
-import { Heart, MessageCircle, MoreHorizontal, Play, Save, Send, Share, Share2, Volume2, VolumeX } from "lucide-react"
+import { Heart, MessageCircle, MoreHorizontal, Play, Save, Send, Share, Share2, Trash2, Volume2, VolumeX } from "lucide-react"
 import { Image, Video } from "@imagekit/next"
 import { useEffect, useRef, useState } from "react"
 import CommentModal from "./CommentModal"
@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import PlaylistModal from "./PlaylistModal"
 import Link from "next/link"
 import ShareModule from "./ShareModule"
+import DeleteVideo from "./DeleteVideo"
 
 const formatNumber = (num: number): string => {
   if (typeof num !== 'number') return "0"
@@ -31,6 +32,7 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
   const [isMuted, setIsMuted] = useState(true)
   const [isLiked, setIsLiked] = useState(reel.isLiked)
   const [isBookmarked, setIsBookmarked] = useState(reel.isBookmarked)
+  const [isDeleteVideo, setIsDeleteVideo] = useState(false)
   const [isShare, setIsShare] = useState(false)
   const [likes, setLikes] = useState(reel.likes)
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false)
@@ -183,8 +185,18 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
     setIsShare(false)
   }
 
+  const handleDeleteVideo=()=>{
+    togglePlay()
+    setIsDeleteVideo(!isDeleteVideo)
+  }
+
+  const closeDeleteVideo = ()=>{
+    setIsDeleteVideo(false)
+  }
+
   return (
     <>
+    
       <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden"  >
         {/* Video */}
 
@@ -298,10 +310,16 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
                 )}
               </button>
               {/* More */}
-              <button className="flex flex-col items-center group">
-                <div className="bg-white/20 rounded-full p-2 sm:p-3 group-hover:bg-white/30 transition-colors">
-                  <MoreHorizontal className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+              <button className="flex flex-col items-center group"
+              onClick={handleDeleteVideo}
+              >
+                {
+                  session?.user?._id === reel?.user && (
+                    <div className="bg-white/20 rounded-full p-2 sm:p-3 group-hover:bg-white/30 transition-colors">
+                  <Trash2 className="w-6 h-6 sm:w-7 sm:h-7 text-white hover:text-red-500 cursor-pointer" />
                 </div>
+                  )
+                }
               </button>
             </div>
           </div>
@@ -326,6 +344,11 @@ export const ReelItem = ({ reel, isActive }: { reel: any; isActive: boolean }) =
       isOpen={isShare}
       onClose={closeShare}
       videoUrl={reel?.videoUrl}
+      />
+
+      <DeleteVideo
+       isOpen={isDeleteVideo}
+      onClose={closeDeleteVideo}
       />
 
     </>
