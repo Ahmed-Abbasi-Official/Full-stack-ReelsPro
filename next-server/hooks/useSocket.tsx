@@ -24,7 +24,9 @@ export const SocketProvider = ( {children} : {children: ReactNode} ) => {
         if(!user?._id) return;
         // if (socketRef.current) return; // already connected
 
-            const _socket = io("http://localhost:8000", {
+            const _socket = io("http://localhost:8080", {
+                path: "/socket.io",
+                 transports: ["websocket"],
                 query:{    
                     userId: user?._id
                 }}
