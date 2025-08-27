@@ -9,11 +9,17 @@ dotenv.config(); // Add this before any other imports
 // const serverName = process.env.SERVER_ID! 
 
 
-const pub = new Redis({
-  host: process.env.REDIS_HOST || "redis-13764.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
-  port: Number(process.env.PORT) || 13764,
-  password: process.env.PASSWORD,
-});
+// const pub = new Redis({
+//   host: process.env.REDIS_HOST || "redis-13764.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
+//   port: Number(process.env.PORT) || 13764,
+//   password: process.env.PASSWORD,
+// });
+const pub = new Redis(process.env.REDIS_HOST!);
+// const pub = new Redis({
+//   host: process.env.REDIS_HOST || "redis-13764.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
+//   port: Number(process.env.PORT) || 13764,
+//   password: process.env.PASSWORD,
+// });
 const sub = pub.duplicate();
 
 pub.on("error", (err: any) => {

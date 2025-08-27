@@ -28,10 +28,7 @@ services:
     environment:
       - MONGODB_URI=mongodb+srv://aymicoding:DQmDt7MFFqBGJoy0@cluster0.2oluew4.mongodb.net/reelsPro
       - SERVER_ID=server-1
-      - REDIS_HOST=redis
-      - PORT=6379
-      - PASSWORD=DuqkNLY9Jg4ZmWR9aLDZrKlpusoOn33u
-
+      - REDIS_HOST=${REDIS_HOST}
   server2:
     build:
       context: .
@@ -47,10 +44,7 @@ services:
     environment:
       - MONGODB_URI=mongodb+srv://aymicoding:DQmDt7MFFqBGJoy0@cluster0.2oluew4.mongodb.net/reelsPro
       - SERVER_ID=server-2
-      - REDIS_HOST=redis
-      - PORT=6379
-      - PASSWORD=DuqkNLY9Jg4ZmWR9aLDZrKlpusoOn33u
-
+      - REDIS_HOST=${REDIS_HOST}
   server3:
     build:
       context: .
@@ -66,10 +60,7 @@ services:
     environment:
       - MONGODB_URI=mongodb+srv://aymicoding:DQmDt7MFFqBGJoy0@cluster0.2oluew4.mongodb.net/reelsPro
       - SERVER_ID=server-3
-      - REDIS_HOST=redis
-      - PORT=6379
-      - PASSWORD=DuqkNLY9Jg4ZmWR9aLDZrKlpusoOn33u
-
+      - REDIS_HOST=${REDIS_HOST}
   redis:
     image: redis
     container_name: redis
