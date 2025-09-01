@@ -1,2 +1,0 @@
-  - PORT=6379
-      - PASSWORD=DuqkNLY9Jg4ZmWR9aLDZrKlpusoOn33u
